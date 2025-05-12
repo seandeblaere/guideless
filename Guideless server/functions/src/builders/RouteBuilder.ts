@@ -1,7 +1,6 @@
 import { Coordinates } from "../shared/types/Coordinates";
 import { ThemeCategory } from "../shared/types/ThemeCategory";
 import { Route } from "../domain/models/Route";
-
 export class RouteBuilder {
     private startLocation?: Coordinates;
     private endLocation?: Coordinates;

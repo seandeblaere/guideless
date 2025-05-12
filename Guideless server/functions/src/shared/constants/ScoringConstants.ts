@@ -17,4 +17,14 @@ export const CLUSTER_SCORING = {
     NEARBY_QUALITY_FACTOR: 0.3,
 } as const;
 
+export const TYPE_SCORING_CATEGORIES = ['high', 'mid', 'low'] as const;
+
+export const TYPE_SCORING = {
+    high: 5,
+    mid: 3,
+    low: 1,
+} as const;
+
+
+
 

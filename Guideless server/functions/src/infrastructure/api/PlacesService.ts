@@ -37,6 +37,7 @@ class PlacesService {
                 name: place.displayName?.text ?? "",
                 rating: place.rating ?? 0,
                 userRatingCount: place.userRatingCount ?? 0,
+                types: place.types ?? [],
             })); 
 
         } catch (error) {

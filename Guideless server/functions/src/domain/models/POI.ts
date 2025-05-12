@@ -7,6 +7,7 @@ export class POI implements IPoi {
     public readonly name: string;
     public readonly rating: number;
     public readonly userRatingCount: number;
+    public readonly types: string[];
 
     private _themeScore: number = 0;
     private _qualityScore: number = 0;
@@ -18,6 +19,7 @@ export class POI implements IPoi {
         this.name = place.name;
         this.rating = place.rating;
         this.userRatingCount = place.userRatingCount;
+        this.types = place.types;
     }
 
     public get baseScore(): number {

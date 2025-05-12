@@ -1,5 +1,5 @@
 import { db } from "../../index";
-import { ThemeCategory } from "../../types/Consts";
+import { ThemeCategory } from "../../shared/types/ThemeCategory";
 
 export const getThemeTypes = async (themes: ThemeCategory[]): Promise<string[]> => {
     const themeTypes = new Set<string>();

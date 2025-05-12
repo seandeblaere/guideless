@@ -3,4 +3,5 @@ export interface IPlace {
     name: string;
     rating: number;
     userRatingCount: number;
+    types: string[];
 }

@@ -37,7 +37,7 @@ class RoutingService {
                         return;
                     }
 
-                    distanceMap.set(destinationId, response.distanceMeters);
+                    distanceMap.set(destinationId, response.duration);
                 });
                 
                 stream.on("error", (err) => {

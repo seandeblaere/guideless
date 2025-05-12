@@ -17,9 +17,9 @@ export class RouteState {
         this._isolatedHighScoringPois = this.calculateIsolatedHighScoringPois();
     }
 
-    public static initialize(route: Route, availablePois: POI[]): RouteState {
+    public static async initialize(route: Route, availablePois: POI[]): Promise<RouteState> {
         const routeState = new RouteState(route, availablePois);
-        routeState.initializeScores();
+        await routeState.initializeScores();
         return routeState;
     }
     
@@ -87,8 +87,8 @@ export class RouteState {
         });
     }
 
-    private initializeScores(): void {
-        ThemeScorer.calculateScores(this._availablePois);
+    private async initializeScores(): Promise<void> {
+        await ThemeScorer.calculateScores(this._availablePois);
         QualityScorer.calculateScores(this._availablePois);
         ClusterScorer.calculateScores(
             this._availablePois,

@@ -6,14 +6,14 @@ import { API_CALL_OPTIONS } from "../../shared/constants/ApiConstants";
 import { ApiRequestBuilder } from "../../builders/ApiRequestBuilder";
 import { apiConfig } from "../../config/ApiConfig";
 
-class PlacesService {
+export class PlacesService {
     private placesClient: PlacesClient;
     private places: IPlace[] = [];
     private apiRequestBuilder: ApiRequestBuilder;
 
     constructor() {
         this.placesClient = new PlacesClient({
-            key: apiConfig.googleMapsApiKey,
+            key: apiConfig.googleMapsApiKey
         });
         this.apiRequestBuilder = new ApiRequestBuilder("nearbyPlacesRequest");
     }
@@ -56,5 +56,3 @@ class PlacesService {
     }
 
 }
-
-export default new PlacesService();

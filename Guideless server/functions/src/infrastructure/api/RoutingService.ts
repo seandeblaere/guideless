@@ -5,8 +5,8 @@ import { DistanceMatrix } from "../../shared/types/DistanceMatrix";
 import { ApiRequestBuilder } from "../../builders/ApiRequestBuilder";
 import { DistanceMatrixRequestData } from "./dto/DistanceMatrixRequestData";
 import { apiConfig } from "../../config/ApiConfig";
-
-class RoutingService {
+import { GoogleDuration } from "../../shared/types/GoogleDuration";
+export class RoutingService {
     private routingClient: RoutesClient;
     private distanceMatrix: DistanceMatrix;
     private apiRequestBuilder: ApiRequestBuilder;
@@ -24,7 +24,7 @@ class RoutingService {
             const stream =  this.routingClient.computeRouteMatrix(requestData, API_CALL_OPTIONS.DISTANCE_MATRIX);
 
             places.forEach(origin => {
-                this.distanceMatrix.set(origin.id, new Map<string, number>());
+                this.distanceMatrix.set(origin.id, new Map<string, GoogleDuration>());
             });
             
             await new Promise<void>((resolve) => {
@@ -61,5 +61,3 @@ class RoutingService {
         return this.apiRequestBuilder.build() as DistanceMatrixRequestData;
     }
 }
-
-export default new RoutingService();

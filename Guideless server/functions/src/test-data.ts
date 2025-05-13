@@ -6,7 +6,7 @@ export const clientRequest: ClientRequest = {
         latitude: 51.057567,
         longitude: 3.720600
         },
-    durationMinutes: 60,
+    durationMinutes: 120,
     isRoundTrip: false,
     themeCategories: ["culture", "history"],
     maxPOICount: 20

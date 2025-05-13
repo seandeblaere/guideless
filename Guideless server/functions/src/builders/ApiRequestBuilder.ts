@@ -49,7 +49,7 @@ export class ApiRequestBuilder {
     }
 
     private getRadius(): number {
-        return (this.durationMinutes/60) * this.averageWalkingSpeed;
+        return (this.durationMinutes/60) * this.averageWalkingSpeed * 1000;
     }
 
     private buildNearbyPlacesRequest(): NearbyPlacesRequestData {

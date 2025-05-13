@@ -1,7 +1,7 @@
 export const DEFAULT_ROUTE_WEIGHTS = {
-    theme: 0.5,
-    quality: 0.3,
-    cluster: 0.2,
+    theme: 0.35,
+    quality: 0.35,
+    cluster: 0.3,
 } as const;
 
 export const QUALITY_SCORING = {
@@ -13,8 +13,8 @@ export const QUALITY_SCORING = {
 
 export const CLUSTER_SCORING = {
     CONNECTIVITY_FACTOR: 0.4,
-    GATEWAY_FACTOR: 0.3,
-    NEARBY_QUALITY_FACTOR: 0.3,
+    GATEWAY_FACTOR: 0.2,
+    NEARBY_QUALITY_FACTOR: 0.4,
 } as const;
 
 export const TYPE_SCORING_CATEGORIES = ['high', 'mid', 'low'] as const;

@@ -1,7 +1,7 @@
 import { IPlace } from "../interfaces/IPlace";
 import { DEFAULT_ROUTE_WEIGHTS } from "../../shared/constants/ScoringConstants";
 import { IPoi } from "../interfaces/IPOI";
-
+import { GoogleDuration } from "../../shared/types/GoogleDuration";
 export class POI implements IPoi {
     public readonly id: string;
     public readonly name: string;
@@ -12,7 +12,7 @@ export class POI implements IPoi {
     private _themeScore: number = 0;
     private _qualityScore: number = 0;
     private _clusterScore: number = 0;
-    private _distances: Map<string, number> = new Map();
+    private _distances: Map<string, GoogleDuration> = new Map();
 
     constructor(place: IPlace) {
         this.id = place.id;
@@ -38,7 +38,7 @@ export class POI implements IPoi {
         return this._clusterScore;
     }
 
-    public get distances(): Map<string, number> {
+    public get distances(): Map<string, GoogleDuration> {
         return this._distances;
     }
 
@@ -54,12 +54,16 @@ export class POI implements IPoi {
         this._clusterScore = score;
     }
 
-    public set distances(distances: Map<string, number>) {
+    public set distances(distances: Map<string, GoogleDuration>) {
         this._distances = distances;
     }
 
     public getDistanceToPOI(poiId: string): number {
-        return this._distances.get(poiId) ?? Infinity;
+        const distance = this._distances.get(poiId) ?? Infinity;
+        if (typeof distance === 'object' && 'seconds' in distance) {
+            return Number(distance.seconds);
+        }
+        return Infinity;
     }
     
     private calculateBaseScore(weights = DEFAULT_ROUTE_WEIGHTS): number {

@@ -5,6 +5,8 @@ import { CLUSTER_SCORING } from "../../shared/constants/ScoringConstants";
 export class ClusterScorer {
 
     public static calculateScores(availablePois: POI[], globalAvgDistance: number, isolatedHighScoringPois: POI[]): void {
+        console.log('Global Average Distance:', globalAvgDistance);
+        console.log('Isolated High Scoring POIs:', isolatedHighScoringPois.length);
         const rawClusterScores: RawScore[] = availablePois.map(poi => {
             return {
                 poiId: poi.id,
@@ -20,7 +22,7 @@ export class ClusterScorer {
         const gatewayScore = this.calculateGatewayScore(poi, isolatedHighScoringPois, globalAvgDistance);
         const nearbyQualityScore = this.calculateNearbyQualityScore(poi, availablePois, globalAvgDistance);
         
-        return CLUSTER_SCORING.CONNECTIVITY_FACTOR * connectivityScore + 
+        return CLUSTER_SCORING.CONNECTIVITY_FACTOR * connectivityScore  + 
             CLUSTER_SCORING.GATEWAY_FACTOR * gatewayScore + 
             CLUSTER_SCORING.NEARBY_QUALITY_FACTOR * nearbyQualityScore;
     }

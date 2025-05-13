@@ -21,10 +21,6 @@ export class Route implements IRoute {
         this.isRoundTrip = isRoundTrip;
         this.maxPOICount = maxPOICount;
         this.themeCategories = themeCategories;
-
-        if (isRoundTrip && !endLocation) {
-            throw new Error("End location is required for round trip routes");
-        }
     }
 
     static from(route: Route): Route {

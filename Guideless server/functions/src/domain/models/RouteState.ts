@@ -60,17 +60,31 @@ export class RouteState {
         let totalDistance = 0;
         let pairCount = 0;
         
+        console.log('Starting global average distance calculation...');
+        console.log('Number of POIs:', this._availablePois.length);
+        
         for (let i = 0; i < this._availablePois.length; i++) {
             for (let j = i + 1; j < this._availablePois.length; j++) {
-                if (this._availablePois[i].id === this._availablePois[j].id) {
-                    continue;
-                }
-                const distance = this._availablePois[i].getDistanceToPOI(this._availablePois[j].id);
+                const poi1 = this._availablePois[i];
+                const poi2 = this._availablePois[j];
+                
+                console.log(`Checking distance between ${poi1.name} and ${poi2.name}`);
+                console.log('POI1 distances map:', Array.from(poi1.distances.entries()));
+                
+                const distance = poi1.getDistanceToPOI(poi2.id);
+                console.log('Retrieved distance:', distance);
+                
                 totalDistance += distance;
-                pairCount++;   
+                pairCount++;
             }
         }
-        return totalDistance / pairCount;
+        
+        const avg = totalDistance / pairCount;
+        console.log('Total distance:', totalDistance);
+        console.log('Pair count:', pairCount);
+        console.log('Calculated average:', avg);
+        
+        return avg;
     }
 
     private calculateIsolatedHighScoringPois(): POI[] {
@@ -80,7 +94,7 @@ export class RouteState {
                 .map(other => p.getDistanceToPOI(other.id));
             
             const avgDistance = distances.reduce((sum, dist) => sum + dist, 0) / distances.length;
-            const isIsolated = avgDistance > (this.globalAvgDistance * 1.5);
+            const isIsolated = avgDistance > (this.globalAvgDistance * 1.2);
             const hasHighScore = p.qualityScore > 0.85;
             
             return isIsolated && hasHighScore;

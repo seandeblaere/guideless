@@ -48,7 +48,11 @@ export class RouteState {
     
         const newAvailablePois = this._availablePois.filter(p => p.id !== poi.id);
         
-        return new RouteState(newRoute, newAvailablePois);
+        const newRouteState = new RouteState(newRoute, newAvailablePois);
+
+        ClusterScorer.calculateScores(newRouteState._availablePois, newRouteState._globalAvgDistance, newRouteState._isolatedHighScoringPois);
+
+        return newRouteState;
     }
 
     public isComplete(): boolean {
@@ -60,19 +64,12 @@ export class RouteState {
         let totalDistance = 0;
         let pairCount = 0;
         
-        console.log('Starting global average distance calculation...');
-        console.log('Number of POIs:', this._availablePois.length);
-        
         for (let i = 0; i < this._availablePois.length; i++) {
             for (let j = i + 1; j < this._availablePois.length; j++) {
                 const poi1 = this._availablePois[i];
                 const poi2 = this._availablePois[j];
                 
-                console.log(`Checking distance between ${poi1.name} and ${poi2.name}`);
-                console.log('POI1 distances map:', Array.from(poi1.distances.entries()));
-                
                 const distance = poi1.getDistanceToPOI(poi2.id);
-                console.log('Retrieved distance:', distance);
                 
                 totalDistance += distance;
                 pairCount++;
@@ -80,10 +77,6 @@ export class RouteState {
         }
         
         const avg = totalDistance / pairCount;
-        console.log('Total distance:', totalDistance);
-        console.log('Pair count:', pairCount);
-        console.log('Calculated average:', avg);
-        
         return avg;
     }
 

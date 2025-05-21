@@ -15,6 +15,8 @@ export const CLUSTER_SCORING = {
     CONNECTIVITY_FACTOR: 0.4,
     GATEWAY_FACTOR: 0.2,
     NEARBY_QUALITY_FACTOR: 0.4,
+    QUALITY_WEIGHT: 0.5,
+    THEME_WEIGHT: 0.5,
 } as const;
 
 export const TYPE_SCORING_CATEGORIES = ['high', 'mid', 'low'] as const;

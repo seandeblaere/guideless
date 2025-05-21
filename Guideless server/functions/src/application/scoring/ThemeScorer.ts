@@ -20,7 +20,7 @@ export class ThemeScorer {
 
     private static calculateIndividualScore(poi: POI, typeScoring: Map<string, string[]>): number {
         let score = 0;
-        poi.types.forEach(type => {
+        poi.types?.forEach(type => {
             if (typeScoring.get("high")?.includes(type)) {
                 score += TYPE_SCORING.high;
             } else if (typeScoring.get("mid")?.includes(type)) {

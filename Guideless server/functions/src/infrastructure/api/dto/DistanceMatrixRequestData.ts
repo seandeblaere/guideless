@@ -4,6 +4,17 @@ export type Waypoint = {
     }
 }
 
+export type LocationWaypoint = {
+    waypoint: {
+        location: {
+            latLng: {
+                latitude: number;
+                longitude: number;
+            }
+        }
+    }
+}
+
 export type DistanceMatrixRequestData = {
     origins: Waypoint[];
     destinations: Waypoint[];

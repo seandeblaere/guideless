@@ -1,18 +1,17 @@
 import { IPlace } from "../interfaces/IPlace";
 import { DEFAULT_ROUTE_WEIGHTS } from "../../shared/constants/ScoringConstants";
 import { IPoi } from "../interfaces/IPOI";
-import { GoogleDuration } from "../../shared/types/GoogleDuration";
 export class POI implements IPoi {
     public readonly id: string;
-    public readonly name: string;
-    public readonly rating: number;
-    public readonly userRatingCount: number;
-    public readonly types: string[];
+    public readonly name?: string;
+    public readonly rating?: number;
+    public readonly userRatingCount?: number;
+    public readonly types?: string[];
 
     private _themeScore: number = 0;
     private _qualityScore: number = 0;
     private _clusterScore: number = 0;
-    private _distances: Map<string, GoogleDuration> = new Map();
+    private _distances: Map<string, number> = new Map();
 
     constructor(place: IPlace) {
         this.id = place.id;
@@ -38,7 +37,7 @@ export class POI implements IPoi {
         return this._clusterScore;
     }
 
-    public get distances(): Map<string, GoogleDuration> {
+    public get distances(): Map<string, number> {
         return this._distances;
     }
 
@@ -54,16 +53,29 @@ export class POI implements IPoi {
         this._clusterScore = score;
     }
 
-    public set distances(distances: Map<string, GoogleDuration>) {
+    public set distances(distances: Map<string, number>) {
         this._distances = distances;
     }
 
+    public static createLocationPOI(isStart: boolean): POI {
+        const id = isStart ? "start_location" : "end_location";
+        const name = isStart ? "Starting Point" : "Ending Point";
+        
+        const place: IPlace = {
+            id,
+            name,
+            rating: 0,
+            userRatingCount: 0,
+            types: [],
+        };
+        
+        const poi = new POI(place);
+        
+        return poi;
+    }
+
     public getDistanceToPOI(poiId: string): number {
-        const distance = this._distances.get(poiId) ?? Infinity;
-        if (typeof distance === 'object' && 'seconds' in distance) {
-            return Number(distance.seconds);
-        }
-        return Infinity;
+        return this._distances.get(poiId) ?? Infinity;
     }
     
     private calculateBaseScore(weights = DEFAULT_ROUTE_WEIGHTS): number {

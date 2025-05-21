@@ -1,10 +1,13 @@
 import { ClientRequest } from "./infrastructure/api/dto/ClientRequestData";
 
-// Sample client request
 export const clientRequest: ClientRequest = {
     startLocation: {
         latitude: 51.057567,
         longitude: 3.720600
+        },
+    endLocation: {
+        latitude: 51.052644,
+        longitude: 3.722061
         },
     durationMinutes: 120,
     isRoundTrip: false,

@@ -59,10 +59,16 @@ export class ClusterScorer {
 
         if (nearbyPois.length === 0) return 0;
 
-        const totalScore = nearbyPois.reduce((sum, p) => {
+        const totalQualityScore = nearbyPois.reduce((sum, p) => {
             const distance = poi.getDistanceToPOI(p.id);
             const weight = Math.exp(-distance / (globalAvgDistance * 0.5));
             return sum + (p.qualityScore * weight);
+        }, 0);
+    
+        const totalThemeScore = nearbyPois.reduce((sum, p) => {
+            const distance = poi.getDistanceToPOI(p.id);
+            const weight = Math.exp(-distance / (globalAvgDistance * 0.5));
+            return sum + (p.themeScore * weight);
         }, 0);
 
         const totalWeight = nearbyPois.reduce((sum, p) => {
@@ -70,7 +76,12 @@ export class ClusterScorer {
             return sum + Math.exp(-distance / (globalAvgDistance * 0.5));
         }, 0);
 
-        return totalWeight > 0 ? totalScore / totalWeight : 0;
+        if (totalWeight === 0) return 0;
+
+        const weightedQualityScore = totalQualityScore / totalWeight;
+        const weightedThemeScore = totalThemeScore / totalWeight;
+
+        return (weightedQualityScore * CLUSTER_SCORING.QUALITY_WEIGHT) + (weightedThemeScore * CLUSTER_SCORING.THEME_WEIGHT);
     }
 
     private static applyScoring(availablePois: POI[], rawClusterScores: RawScore[]): void {

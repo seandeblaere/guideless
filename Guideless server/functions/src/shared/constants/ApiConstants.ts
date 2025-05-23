@@ -1,6 +1,7 @@
 export const API_FIELD_MASKS = {
     NEARBY_PLACES: "places.displayName,places.id,places.rating,places.userRatingCount,places.types",
-    DISTANCE_MATRIX: "originIndex,destinationIndex,duration"
+    DISTANCE_MATRIX: "originIndex,destinationIndex,duration",
+    ROUTE: "routes.duration,routes.distanceMeters,routes.polyline,routes.optimizedIntermediateWaypointIndex"
 } as const;
 
 export const API_CALL_OPTIONS = {
@@ -15,6 +16,13 @@ export const API_CALL_OPTIONS = {
         otherArgs: {
             headers: {
                 'X-Goog-FieldMask': API_FIELD_MASKS.DISTANCE_MATRIX,
+            },
+        },
+    },
+    ROUTE: {
+        otherArgs: {
+            headers: {
+                'X-Goog-FieldMask': API_FIELD_MASKS.ROUTE,
             },
         },
     },

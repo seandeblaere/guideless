@@ -7,7 +7,7 @@ import { DistanceMatrixRequestData } from "./dto/DistanceMatrixRequestData";
 import { apiConfig } from "../../config/ApiConfig";
 import { Coordinates } from "../../shared/types/Coordinates";
 
-export class RoutingService {
+export class DistanceMatrixService {
     private routingClient: RoutesClient;
     private distanceMatrix: DistanceMatrix;
     private apiRequestBuilder: ApiRequestBuilder;

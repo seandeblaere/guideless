@@ -1,8 +1,9 @@
 import { IPlace } from "../domain/interfaces/IPlace";
+import { POI } from "../domain/models/POI";
 import { Coordinates } from "../shared/types/Coordinates";
 import { NearbyPlacesRequestData } from "../infrastructure/api/dto/NearbyPlacesRequestData";
 import { DistanceMatrixRequestData, Waypoint, LocationWaypoint } from "../infrastructure/api/dto/DistanceMatrixRequestData";
-
+import { RouteRequestData, Intermediate } from "../infrastructure/api/dto/RouteRequestData";
 export class ApiRequestBuilder {
     private coordinates: Coordinates = {
         latitude: 0,
@@ -11,7 +12,8 @@ export class ApiRequestBuilder {
     private durationMinutes: number = 0;
     private includedTypes: string[] = [];
     private places: IPlace[] = [];
-    private requestType: "nearbyPlacesRequest" | "distanceMatrixRequest";
+    private pois: POI[] = [];
+    private requestType: "nearbyPlacesRequest" | "distanceMatrixRequest" | "routeRequest";
     private averageWalkingSpeed: number = 5;
     private startLocation: Coordinates = {
         latitude: 0,
@@ -19,7 +21,7 @@ export class ApiRequestBuilder {
     };
     private endLocation?:Coordinates;
 
-    constructor(requestType: "nearbyPlacesRequest" | "distanceMatrixRequest") {
+    constructor(requestType: "nearbyPlacesRequest" | "distanceMatrixRequest" | "routeRequest") {
         this.requestType = requestType;
     }
 
@@ -53,6 +55,11 @@ export class ApiRequestBuilder {
         return this;
     }
 
+    setPois(pois: POI[]): ApiRequestBuilder {
+        this.pois = pois;
+        return this;
+    }
+
     private getWaypoints(): Waypoint[] {
         const waypoints = this.places.map(place => ({
             waypoint: {
@@ -75,6 +82,12 @@ export class ApiRequestBuilder {
             }
         };
     }
+
+    private getIntermediates(): Intermediate[] {
+        return this.pois.map(poi => ({
+          placeId: poi.id
+        }));
+      }
 
     private mergeWaypoints(location?: Coordinates): any[] {
         if (!location) {
@@ -109,14 +122,44 @@ export class ApiRequestBuilder {
         };
     }
 
+    private buildRouteRequest(): RouteRequestData {
+        return {
+            "origin": {
+                "location": {
+                    "latLng": {
+                        "latitude": this.startLocation.latitude,
+                        "longitude": this.startLocation.longitude
+                    }
+                }
+            },
+            "destination": {
+                "location": {
+                    "latLng": {
+                        "latitude": this.endLocation?.latitude ?? this.startLocation.latitude,
+                        "longitude": this.endLocation?.longitude ?? this.startLocation.longitude
+                    }
+                }
+            },
+            "intermediates": this.getIntermediates(),
+            "travelMode": "WALK",
+            "polylineEncoding": "ENCODED_POLYLINE",
+            "polylineQuality": "HIGH_QUALITY",
+            "optimizeWaypoints": true,
+        };
+    }
 
-    build(): NearbyPlacesRequestData | DistanceMatrixRequestData {
+
+    build(): NearbyPlacesRequestData | DistanceMatrixRequestData | RouteRequestData {
         if (this.requestType === "nearbyPlacesRequest") {
             return this.buildNearbyPlacesRequest();
         }
 
         if (this.requestType === "distanceMatrixRequest") {
             return this.buildDistanceMatrixRequest();
+        }
+
+        if(this.requestType === "routeRequest") {
+            return this.buildRouteRequest();
         }
 
         throw new Error("Invalid request type");

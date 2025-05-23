@@ -37,7 +37,7 @@ export class Route implements IRoute {
         return newRoute;
     }
 
-    public get pois(): readonly POI[] {
+    public get pois(): POI[] {
         return [...this._pois];
     }
 

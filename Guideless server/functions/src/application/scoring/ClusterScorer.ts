@@ -5,8 +5,6 @@ import { CLUSTER_SCORING } from "../../shared/constants/ScoringConstants";
 export class ClusterScorer {
 
     public static calculateScores(availablePois: POI[], globalAvgDistance: number, isolatedHighScoringPois: POI[]): void {
-        console.log('Global Average Distance:', globalAvgDistance);
-        console.log('Isolated High Scoring POIs:', isolatedHighScoringPois.length);
         const rawClusterScores: RawScore[] = availablePois.map(poi => {
             return {
                 poiId: poi.id,

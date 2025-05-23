@@ -1,24 +1,26 @@
 import  { PlacesService }  from "../../infrastructure/api/PlacesService";
-import  { RoutingService }  from "../../infrastructure/api/RoutingService";
-import { Route } from "../../domain/models/Route";
+import  { DistanceMatrixService }  from "../../infrastructure/api/DistanceMatrixService";
 import { RouteBuilder } from "../../builders/RouteBuilder";
 import { RouteState } from "../../domain/models/RouteState";
 import { POI } from "../../domain/models/POI";
 import { RouteOptimizer } from "./RouteOptimizer";
 import { ClientRequest } from "../../infrastructure/api/dto/ClientRequestData";
 import { getThemeTypes } from "../../infrastructure/firebase/ThemeRepository";
+import { RoutesService } from "../../infrastructure/api/RoutesService";
 export class RouteGenerator {
         private placesService: PlacesService;
-        private routingService: RoutingService;
+        private distanceMatrixService: DistanceMatrixService;
         private routeBuilder: RouteBuilder;
+        private routesService: RoutesService;
 
     constructor() {
         this.placesService = new PlacesService();
-        this.routingService = new RoutingService();
+        this.distanceMatrixService = new DistanceMatrixService();
         this.routeBuilder = new RouteBuilder();
+        this.routesService = new RoutesService();
     }
 
-    async generateRoute(request: ClientRequest): Promise<Route> {
+    async generateRoute(request: ClientRequest): Promise<any> {
         const themeTypes = await getThemeTypes(request.themeCategories);
 
         const places = await this.placesService.searchNearbyPlaces({
@@ -27,7 +29,7 @@ export class RouteGenerator {
             includedTypes: themeTypes,
         });
 
-        const distanceMatrix = await this.routingService.calculateDistanceMatrix(places, request.startLocation, request.endLocation);
+        const distanceMatrix = await this.distanceMatrixService.calculateDistanceMatrix(places, request.startLocation, request.endLocation);
 
         console.log("distanceMatrix:", distanceMatrix);
 
@@ -101,12 +103,16 @@ export class RouteGenerator {
 
         const routeState = await RouteState.initialize(route, pois);
 
-        console.log("starting routeState:", routeState);
+        console.log("routeState initialized:", routeState);
 
         const optimizedRouteState = RouteOptimizer.optimize(routeState);
 
-        console.log("final optimized routeState:", optimizedRouteState);
+        console.log("optimizedRouteState:", optimizedRouteState);
 
-        return optimizedRouteState.route;
+        const computedRoute = await this.routesService.computeRoute(optimizedRouteState.route);
+
+        console.log("computedRoute:", computedRoute);
+
+        return computedRoute;
     }
 }

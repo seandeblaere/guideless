@@ -4,14 +4,16 @@ export type Waypoint = {
     }
 }
 
+export type Location = {
+    latLng: {
+        latitude: number;
+        longitude: number;
+    }
+}
+
 export type LocationWaypoint = {
     waypoint: {
-        location: {
-            latLng: {
-                latitude: number;
-                longitude: number;
-            }
-        }
+        location: Location;
     }
 }
 

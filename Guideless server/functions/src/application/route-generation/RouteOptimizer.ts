@@ -24,7 +24,6 @@ export class RouteOptimizer {
                     const netGain = this.calculateNetGain(poi, i, routePois);
                     
                     if (netGain > bestNetGain) {
-                        console.log("new best net gain:", netGain, "for poi with name:", poi.name, "at position:", i);
                         bestNetGain = netGain;
                         bestPOI = poi;
                         position= i;

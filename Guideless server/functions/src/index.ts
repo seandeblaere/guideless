@@ -12,11 +12,9 @@ export const getRoute = onRequest(async (req, res) => {
         console.log("request received:", request);
 
         const routeGenerator = new RouteGenerator();
-        const route = routeGenerator.generateRoute(request);
+        const route = await routeGenerator.generateRoute(request);
 
-        console.log("route generated:", route);
-
-        res.status(200).send("route generated successfully");
+        res.status(200).send(route);
     } catch (error) {
         console.error(error);
         res.status(500).send(error);

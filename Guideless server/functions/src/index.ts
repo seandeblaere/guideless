@@ -7,12 +7,9 @@ export const db = admin.firestore();
 
 export const getRoute = onRequest(async (req, res) => {
     try {
-        const request = req.body;
-
-        console.log("request received:", request);
 
         const routeGenerator = new RouteGenerator();
-        const route = await routeGenerator.generateRoute(request);
+        const route = await routeGenerator.generateRoute(req.body);
 
         res.status(200).send(route);
     } catch (error) {

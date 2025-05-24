@@ -144,7 +144,7 @@ export class ApiRequestBuilder {
             "travelMode": "WALK",
             "polylineEncoding": "ENCODED_POLYLINE",
             "polylineQuality": "HIGH_QUALITY",
-            "optimizeWaypoints": true,
+            "optimizeWaypointOrder": true,
         };
     }
 

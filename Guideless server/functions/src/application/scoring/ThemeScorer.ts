@@ -39,7 +39,7 @@ export class ThemeScorer {
             rawThemeScores.forEach(score => {
                 const poi = pois.find(poi => poi.id === score.poiId);
                 if (poi) {
-                    poi.themeScore = score.rawScore / maxScore;
+                    poi.themeScore = Number((score.rawScore / maxScore).toFixed(3));
                 }
             });
         }

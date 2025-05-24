@@ -19,10 +19,7 @@ export class DistanceMatrixService {
     }
     
     public async calculateDistanceMatrix(places: IPlace[], startLocation: Coordinates, endLocation?: Coordinates): Promise<DistanceMatrix> {
-        console.log("calculating distance matrix");
         const requestData = this.getRequestData(places, startLocation, endLocation);
-
-        console.log("requestData:", requestData);
 
         try {
             const stream =  this.routingClient.computeRouteMatrix(requestData, API_CALL_OPTIONS.DISTANCE_MATRIX);
@@ -58,7 +55,7 @@ export class DistanceMatrixService {
                     const distanceMap = this.distanceMatrix.get(originId);
                     
                     if (!distanceMap) {
-                        return;
+                        throw new Error("Distance map for origin with id " + originId + " not found in distance matrix");
                     }
 
                     distanceMap.set(destinationId, this.secondsToMinutes(response.duration.seconds));
@@ -90,6 +87,6 @@ export class DistanceMatrixService {
     }
 
     private secondsToMinutes(seconds: number): number {
-        return seconds / 60;
+        return Number((seconds / 60).toFixed(2));
     }
 }

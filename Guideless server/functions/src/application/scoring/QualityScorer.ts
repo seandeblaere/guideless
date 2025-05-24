@@ -50,7 +50,7 @@ export class QualityScorer {
             rawQualityScores.forEach(score => {
                 const poi = pois.find(poi => poi.id === score.poiId);
                 if (poi) {
-                    poi.qualityScore = score.rawScore / maxScore;
+                    poi.qualityScore = Number((score.rawScore / maxScore).toFixed(3));
                 }
             });
         }

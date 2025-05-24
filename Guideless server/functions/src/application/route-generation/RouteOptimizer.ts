@@ -5,14 +5,13 @@ export class RouteOptimizer {
     private static readonly lambda: number = 0.5;
 
     public static optimize(routeState: RouteState): RouteState {
-        console.log("optimizing route");
         return this.insertPOIs(routeState);
     }
 
     private static insertPOIs(routeState: RouteState): RouteState {
         let currentState = routeState;
         
-        while (currentState.remainingTime > 0 && !currentState.isComplete()) {
+        while (!currentState.isComplete()) {
             let bestPOI: POI | null = null;
             let bestNetGain = -Infinity;
             let position = -1;
@@ -33,7 +32,6 @@ export class RouteOptimizer {
     
             if (bestPOI && bestNetGain > 0) {
                 const insertCost = this.calculateInsertCost(bestPOI, position, routePois);
-                console.log("inserting poi:", bestPOI.name, "at position:", position, "with insert cost:", insertCost);
                 currentState = currentState.withAddedPoi(bestPOI, position, insertCost);
             } else {
                 break;

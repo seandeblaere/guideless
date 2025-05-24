@@ -83,14 +83,14 @@ export class ClusterScorer {
     }
 
     private static applyScoring(availablePois: POI[], rawClusterScores: RawScore[]): void {
-        const maxScore = Math.max(...rawClusterScores.map(score => score.rawScore));
+        const maxScore = (Math.max(...rawClusterScores.map(score => score.rawScore)));
         if (maxScore > 0) {
             rawClusterScores.forEach(score => {
                 const poi = availablePois.find(p => p.id === score.poiId);
                 if (!poi) {
                     throw new Error(`POI with id ${score.poiId} not found`);
                 }
-                poi.clusterScore = score.rawScore / maxScore;
+                poi.clusterScore = Number((score.rawScore / maxScore).toFixed(3));
             });
         }
     }

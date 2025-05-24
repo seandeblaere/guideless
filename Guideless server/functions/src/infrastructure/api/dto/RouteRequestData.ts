@@ -15,5 +15,5 @@ export type RouteRequestData = {
     travelMode: "WALK";
     polylineEncoding: "ENCODED_POLYLINE";
     polylineQuality: "HIGH_QUALITY";
-    optimizeWaypoints: boolean;
+    optimizeWaypointOrder: boolean;
 }

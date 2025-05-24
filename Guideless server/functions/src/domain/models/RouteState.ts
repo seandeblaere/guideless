@@ -57,7 +57,8 @@ export class RouteState {
 
     public isComplete(): boolean {
         return this._availablePois.length === 0 ||
-               this._route.pois.length === this._route.maxPOICount;
+               this._route.pois.length - 2 === this._route.maxPOICount ||
+               this.remainingTime <= 0;
     }
 
     private calculateGlobalAvgDistance(): number {
@@ -87,8 +88,8 @@ export class RouteState {
                 .map(other => p.getDistanceToPOI(other.id));
             
             const avgDistance = distances.reduce((sum, dist) => sum + dist, 0) / distances.length;
-            const isIsolated = avgDistance > (this.globalAvgDistance * 1.2);
-            const hasHighScore = p.qualityScore > 0.85;
+            const isIsolated = avgDistance > (this.globalAvgDistance * 1.5);
+            const hasHighScore = p.qualityScore > 0.85 && p.themeScore > 0.85;
             
             return isIsolated && hasHighScore;
         });

@@ -1,66 +1,57 @@
-import { auth } from "@/firebaseConfig";
 import { Stack } from "expo-router";
-import { User, updateProfile } from "firebase/auth";
-import { useState, useEffect, useRef } from "react";
-import {
-  Button,
-  KeyboardAvoidingView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useEffect } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { useAuthActions, useIsInitialized, useUser } from "@/stores/authStore";
+import { useRouter, useSegments } from "expo-router";
+import "../global.css";
 
 export default function RootLayout() {
-  const [user, setUser] = useState<User | null>(null);
-  const [initializing, setInitializing] = useState(true);
-  const [firstName, setFirstName] = useState("");
-
-  const onAuthStateChanged = (user: User | null) => {
-    setUser(user || null);
-    if (initializing) {
-      setInitializing(false);
-    }
-  };
-
-  const updateUserProfile = async () => {
-    if (user) {
-      try {
-        await updateProfile(user, {
-          displayName: firstName,
-        });
-        await user.reload();
-        setUser(user);
-      } catch (error) {
-        alert(error);
-      }
-    }
-  };
+  const { initialize } = useAuthActions();
+  const isInitialized = useIsInitialized();
+  const user = useUser();
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(onAuthStateChanged);
+    const unsubscribe = initialize();
     return unsubscribe;
-  }, []);
+  }, [initialize]);
 
-  if (!user) {
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    const inProtectedGroup = segments[0] === "(protected)";
+
+    if (user && !inProtectedGroup) {
+      router.replace("/");
+    } else if (!user && inProtectedGroup) {
+      router.replace("/login");
+    }
+  }, [user, isInitialized]);
+
+  if (!isInitialized) {
     return (
-      <Stack>
-        <Stack.Screen name="index" />
-      </Stack>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
     );
   }
 
   return (
-    <View>
-      <Text>Hello {user.email}, you are logged in!</Text>
-      <Text>First Name: {user.displayName}</Text>
-      <KeyboardAvoidingView behavior="padding">
-        <TextInput
-          placeholder="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
-        />
-        <Button title="Update Profile" onPress={updateUserProfile} />
-      </KeyboardAvoidingView>
-    </View>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(protected)" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+    </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+});

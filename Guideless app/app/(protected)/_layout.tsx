@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useUser, useAuthActions } from '@/stores/authStore';
 import { TouchableOpacity, Text, Alert } from 'react-native';
+import { TabBar } from '@/components/TabBar';
 
 export default function ProtectedLayout() {
   const user = useUser();
@@ -19,6 +20,7 @@ export default function ProtectedLayout() {
 
   return (
     <Tabs
+      tabBar={props => <TabBar {...props} />}
       screenOptions={{
         headerRight: () => (
           <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
@@ -32,6 +34,12 @@ export default function ProtectedLayout() {
         options={{
           title: 'Home',
           headerTitle: `Welcome ${user?.displayName || user?.email?.split('@')[0]}`,
+        }}
+      />
+      <Tabs.Screen
+        name="maps"
+        options={{
+          title: 'Map',
         }}
       />
       <Tabs.Screen

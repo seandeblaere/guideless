@@ -6,6 +6,8 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Alert,
+  StatusBar,
+  SafeAreaView,
 } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +20,7 @@ import {
   SignInFormData,
   SignUpFormData,
 } from '@/validation/validationSchemas';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -94,11 +97,15 @@ export default function AuthScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior='height'
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <>
+      <StatusBar translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={['#E3D7F7', '#FDD6DF', '#E3D7F7']}
+        start={{ x: 0, y: 0.2 }}
+        end={{ x: 1, y: 0.8 }}
+        style={{ flex: 1 }}
+      >
+      {/* <ScrollView contentContainerStyle={styles.scrollContainer}> 
         <View style={styles.formContainer}>
           <Text style={styles.title}>
             {isSignUp ? 'Create Account' : 'Welcome Back'}
@@ -212,8 +219,9 @@ export default function AuthScreen() {
             style={styles.toggleButton}
           />
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </ScrollView> */}
+      </LinearGradient>
+    </>
   );
 }
 
@@ -221,6 +229,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+  },
+  background: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: 0,
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,

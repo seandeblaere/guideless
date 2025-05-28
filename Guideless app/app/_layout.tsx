@@ -1,9 +1,11 @@
 import { Stack } from "expo-router";
 import { useEffect } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useAuthActions, useIsInitialized, useUser } from "@/stores/authStore";
 import { useRouter, useSegments } from "expo-router";
-import "../global.css";
+import * as SplashScreen from "expo-splash-screen";
+import "@/global.css";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { initialize } = useAuthActions();
@@ -15,7 +17,13 @@ export default function RootLayout() {
   useEffect(() => {
     const unsubscribe = initialize();
     return unsubscribe;
-  }, [initialize]);
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized) {
+      SplashScreen.hideAsync();
+    }
+  }, [isInitialized]);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -31,27 +39,13 @@ export default function RootLayout() {
     }
   }, [user, isInitialized]);
 
-  if (!isInitialized) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-      </View>
-    );
-  }
-
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(protected)" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false,
+     }}>
+      <Stack.Screen name="(protected)" options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen name="login" options={{ headerShown: false, animation: 'none',
+        navigationBarColor: '#E3D7F7'
+       }} />
     </Stack>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-  },
-});

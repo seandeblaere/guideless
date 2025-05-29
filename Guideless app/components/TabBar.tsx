@@ -74,7 +74,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               onLongPress={onLongPress}
               isFocused={isFocused}
               routeName={route.name}
-              color={isFocused ? "white" : "#222"}
+              color={isFocused ? "#FCFCFC" : "#215A73"}
               label={labelString}
             />
           );
@@ -90,19 +90,19 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: '#FFF7F9',
         marginHorizontal: 50,
         paddingVertical: 15,
         borderRadius: 35,
-        shadowColor: '#000',
+        shadowColor: '#2E3A59',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 10, // Add for Android
+        shadowRadius: 5,
+        elevation: 5,
     },
     indicator: {
         position: 'absolute',
-        backgroundColor: 'blue',
+        backgroundColor: '#215A73',
         borderRadius: 30,
         marginHorizontal: 12,
     },

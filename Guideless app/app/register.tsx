@@ -12,50 +12,42 @@ import { useAuthActions, useIsLoading, useError } from '@/stores/authStore';
 import { FormField } from '@/components/form/FormField';
 import { Button } from '@/components/buttons/Button';
 import {
-  signInSchema,
-  SignInFormData,
+  signUpSchema,
+  SignUpFormData,
 } from '@/validation/validationSchemas';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function LoginFormScreen() {
+export default function RegisterFormScreen() {
   const router = useRouter();
-  const { signIn, sendPasswordReset, clearError } = useAuthActions();
+  const { signUp, clearError } = useAuthActions();
   const isLoading = useIsLoading();
   const error = useError();
 
-  const signInForm = useForm<SignInFormData>({
-    resolver: zodResolver(signInSchema),
+  const signUpForm = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
+      firstName: '',
       email: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
-  const handleSignIn = async (data: SignInFormData) => {
+  const handleSignUp = async (data: SignUpFormData) => {
     try {
       clearError();
-      await signIn(data);
-    } catch (error) {
-    }
-  };
-
-  const handleForgotPassword = async () => {
-    const email = signInForm.getValues('email');
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email address first.');
-      return;
-    }
-
-    try {
-      await sendPasswordReset(email);
+      await signUp(data);
       Alert.alert(
-        'Password Reset Sent',
-        'Check your email for password reset instructions.',
-        [{ text: 'OK' }]
+        'Account Created!',
+        'Please check your email for verification before signing in.',
+        [{ 
+          text: 'OK', 
+          onPress: () => router.push('/login')
+        }]
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to send password reset email.');
     }
   };
 
@@ -68,18 +60,19 @@ export default function LoginFormScreen() {
         end={{ x: 1, y: 0.1 }}
         style={{ flex: 1 }}
       >
+        <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
         <View style={styles.container}>
           <View style={styles.formContainer}>
             <Text style={[
               { fontFamily: 'PlayfairDisplay_700Bold' },
               styles.title,
               { color: '#2E3A59' }
-            ]}>Welcome Back</Text>
+            ]}>Create Account</Text>
             <Text style={[
               { fontFamily: 'DMSans_400Regular' },
               styles.subtitle,
               { color: '#764D9D' }
-            ]}>Sign in to your account</Text>
+            ]}>Sign up to get started</Text>
 
             {error && (
               <View style={styles.errorContainer}>
@@ -91,11 +84,21 @@ export default function LoginFormScreen() {
             )}
 
             <FormField
+              name="firstName"
+              control={signUpForm.control}
+              label="First Name"
+              placeholder="Enter your first name"
+              error={signUpForm.formState.errors.firstName?.message}
+              autoCapitalize="words"
+              textContentType="givenName"
+            />
+
+            <FormField
               name="email"
-              control={signInForm.control}
+              control={signUpForm.control}
               label="Email"
               placeholder="Enter your email"
-              error={signInForm.formState.errors.email?.message}
+              error={signUpForm.formState.errors.email?.message}
               keyboardType="email-address"
               autoCapitalize="none"
               textContentType="emailAddress"
@@ -103,31 +106,32 @@ export default function LoginFormScreen() {
 
             <FormField
               name="password"
-              control={signInForm.control}
+              control={signUpForm.control}
               label="Password"
-              placeholder="Enter your password"
-              error={signInForm.formState.errors.password?.message}
+              placeholder="Create a password"
+              error={signUpForm.formState.errors.password?.message}
               secureTextEntry
-              textContentType="password"
+              textContentType="newPassword"
+            />
+
+            <FormField
+              name="confirmPassword"
+              control={signUpForm.control}
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              error={signUpForm.formState.errors.confirmPassword?.message}
+              secureTextEntry
+              textContentType="newPassword"
             />
 
             <Button
-              title="Sign In"
-              onPress={signInForm.handleSubmit(handleSignIn)}
+              title="Create Account"
+              onPress={signUpForm.handleSubmit(handleSignUp)}
               variant="primary"
               backgroundColor="#2E3A59"
               textColor="#FCFCFC"
               style={styles.submitButton}
               loading={isLoading}
-            />
-
-            <Button
-              title="Forgot Password?"
-              onPress={handleForgotPassword}
-              variant="secondary"
-              backgroundColor="transparent"
-              textColor="#2E3A59"
-              style={styles.forgotButton}
             />
             <Button
               title="← Back"
@@ -139,6 +143,7 @@ export default function LoginFormScreen() {
             />
           </View>
         </View>
+        </SafeAreaView>
       </LinearGradient>
     </>
   );
@@ -155,7 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FCFCFC',
     padding: 24,
     borderRadius: 12,
-    shadowColor: '#2E3A59',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -191,9 +196,6 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: 8,
     marginBottom: 16,
-  },
-  forgotButton: {
-    marginBottom: 8,
   },
   toggleButton: {
     marginBottom: 8,

@@ -788,6 +788,16 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
+"@expo-google-fonts/dm-sans@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/dm-sans/-/dm-sans-0.4.0.tgz#3c9f7b7ca63c06a330e6134f45f1f3311e47ad60"
+  integrity sha512-VsftzbvhjUumeL3y9GXR/GihLt75tSCUs5TxlF2IZi/JiUG0Qrdhq2a3h6mN02d9CVajoc62f2imbM0xULJWoA==
+
+"@expo-google-fonts/playfair-display@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/playfair-display/-/playfair-display-0.4.0.tgz#c0d4b1c25ee37c7acb4f23354f7d1692be0e2f15"
+  integrity sha512-BkLayZKLhmmcFVIaZsWsyf+xrtafn8WJr5XDhLyYRBMYPnllTd9n08FvzjL1J86vU94wkOhH5zhQZKuYnx9b7g==
+
 "@expo/cli@0.24.13":
   version "0.24.13"
   resolved "https://registry.yarnpkg.com/@expo/cli/-/cli-0.24.13.tgz#0066e038982b7143f966d688e76e02d935f0dc8b"
@@ -1880,6 +1890,11 @@
   integrity sha512-dvlNq4AlGWC+ehtH12p65+17V0Dx7IecOWl6WanF2ja38O1Dcjjvn7jVzkUHJ5oWkQBlyASurTPlTHgKXyYiow==
   dependencies:
     merge-options "^3.0.4"
+
+"@react-native-community/slider@^4.5.7":
+  version "4.5.7"
+  resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-4.5.7.tgz#523178779f302aa162b0d57211842f81522e8ece"
+  integrity sha512-WMDDZjNF2Bd8M8TrSqKf5xhM9ikdfCHtSPur64Ow3bB/OVrKufUQZ59NmYdNZNeGPvcHHTsafuYTY8zfZfbchQ==
 
 "@react-native/assets-registry@0.79.2":
   version "0.79.2"

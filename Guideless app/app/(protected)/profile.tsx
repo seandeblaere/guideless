@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthActions, useUser, useIsLoading, useError } from '@/stores/authStore';
 import { FormField } from '@/components/form/FormField';
-import { LoadingButton } from '@/components/buttons/LoadingButton';
+import { Button } from '@/components/buttons/Button';
 import {
   profileUpdateSchema,
   ProfileUpdateFormData,
@@ -62,7 +62,7 @@ export default function ProfileScreen() {
           </View>
           
           {!user?.emailVerified && (
-            <LoadingButton
+            <Button
               title="Resend Verification Email"
               onPress={handleResendVerification}
               variant="secondary"
@@ -89,7 +89,7 @@ export default function ProfileScreen() {
             autoCapitalize="words"
           />
 
-          <LoadingButton
+          <Button
             title="Update Profile"
             onPress={form.handleSubmit(handleUpdateProfile)}
             loading={isLoading}

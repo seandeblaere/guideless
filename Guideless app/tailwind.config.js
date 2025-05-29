@@ -5,9 +5,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "galaxies-start": "#F0E8FA",
-        "galaxies-middle": "#FFE9EF", 
-        "galaxies-end": "#F0E8FA",
+      },
+      fontFamily: {
+        'playfair': ['PlayfairDisplay_400Regular'],
+        'playfair-bold': ['PlayfairDisplay_700Bold'],
+        'playfair-black': ['PlayfairDisplay_900Black'],
+        'dm-sans': ['DMSans_400Regular'],
+        'dm-sans-medium': ['DMSans_500Medium'],
+        'dm-sans-bold': ['DMSans_700Bold'],
       },
     },
   },

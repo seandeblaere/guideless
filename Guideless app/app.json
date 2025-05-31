@@ -9,14 +9,22 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyDlvivtpRnt-3_Kpi8HTZfRLgSmmqDsDtI"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.seandeblaere.Guideless"
+      "package": "com.seandeblaere.Guideless",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDlvivtpRnt-3_Kpi8HTZfRLgSmmqDsDtI"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +43,15 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-background-task",
+      [
+        "expo-location",
+        {
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

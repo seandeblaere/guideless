@@ -1489,6 +1489,11 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-1.0.3.tgz#a73bab8eb491d7b8b7be2f0e6c310647835afe83"
   integrity sha512-2xCRM9q9FlzGZCdgDMJwc0gyUkWFtkosy7Xxr6sFgQwn+wMNIWd7xIvYNauU1r64B5L5rsGKy/n9TKJ0aAFeqQ==
 
+"@googlemaps/polyline-codec@^1.0.28":
+  version "1.0.28"
+  resolved "https://registry.yarnpkg.com/@googlemaps/polyline-codec/-/polyline-codec-1.0.28.tgz#8e41aaa117fac31811dcd1c238aaa42d139fba89"
+  integrity sha512-m7rh8sbxlrHvebXEweBHX8r1uPtToPRYxWDD6p6k2YG8hyhBe0Wi6xRUVFpxpEseMNgF+OBotFQC5senj8K7TQ==
+
 "@grpc/grpc-js@~1.9.0":
   version "1.9.15"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.9.15.tgz#433d7ac19b1754af690ea650ab72190bd700739b"
@@ -3457,6 +3462,13 @@ expo-asset@~11.1.5:
     "@expo/image-utils" "^0.7.4"
     expo-constants "~17.1.5"
 
+expo-background-task@~0.2.7:
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/expo-background-task/-/expo-background-task-0.2.7.tgz#581a5624a7c0af7d619347218f7f7cce1105ca8f"
+  integrity sha512-m2OWO3y3VbrD9F+aln/TRswDRauPMVU7n7k53O5MorLZZJ39fEfoJNmGeN1M3x3GvKWDBZ8ie4cHYQP4KEIfTw==
+  dependencies:
+    expo-task-manager "~13.1.5"
+
 expo-blur@~14.1.4:
   version "14.1.4"
   resolved "https://registry.yarnpkg.com/expo-blur/-/expo-blur-14.1.4.tgz#d246c0a224ce63321d022edfc0e6a8c5fa2cc865"
@@ -3576,6 +3588,16 @@ expo-modules-core@2.3.13:
   dependencies:
     invariant "^2.2.4"
 
+expo-navigation-bar@~4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/expo-navigation-bar/-/expo-navigation-bar-4.2.4.tgz#54c79d8d75b1da8e3887ca5d44c4f937f033cc7c"
+  integrity sha512-aagtBaGtqeFT9GbxTBU0sUrwupZO6OLbKYJgvmZ54KSMQa5QfwNk1qScPTy5VzHs9lwAGUkBkzC1QKrnsXtj0w==
+  dependencies:
+    "@react-native/normalize-colors" "0.79.2"
+    debug "^4.3.2"
+    react-native-edge-to-edge "1.6.0"
+    react-native-is-edge-to-edge "^1.1.6"
+
 expo-router@~5.0.7:
   version "5.0.7"
   resolved "https://registry.yarnpkg.com/expo-router/-/expo-router-5.0.7.tgz#032c1de9d06237664169959f7178a818d7b0e677"
@@ -3625,6 +3647,13 @@ expo-system-ui@~5.0.7:
   dependencies:
     "@react-native/normalize-colors" "0.79.2"
     debug "^4.3.2"
+
+expo-task-manager@~13.1.5:
+  version "13.1.5"
+  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-13.1.5.tgz#fc09bdc9562339aa71de4ed2e7ff17491e6b6ee2"
+  integrity sha512-9jspZZ6y6hwo6QBwmfsUUX6sY4Mnrw8170LnOqrVfRuClkGaMrqDeBa9YUFTDt/BNYZ/3/QlZZ5QUHT9ziROfQ==
+  dependencies:
+    unimodules-app-loader "~5.1.3"
 
 expo-updates-interface@~1.1.0:
   version "1.1.0"
@@ -6970,6 +6999,11 @@ unicode-property-aliases-ecmascript@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/unicode-property-aliases-ecmascript/-/unicode-property-aliases-ecmascript-2.1.0.tgz#43d41e3be698bd493ef911077c9b131f827e8ccd"
   integrity sha512-6t3foTQI9qne+OZoVQB/8x8rk2k1eVy1gRXhV3oFQ5T6R1dqQ1xtin3XqSlx3+ATBkliTaR/hHyJBm+LVPNM8w==
+
+unimodules-app-loader@~5.1.3:
+  version "5.1.3"
+  resolved "https://registry.yarnpkg.com/unimodules-app-loader/-/unimodules-app-loader-5.1.3.tgz#c3be527cd36120fc77d6843253075c8a9246f622"
+  integrity sha512-nPUkwfkpJWvdOQrVvyQSUol93/UdmsCVd9Hkx9RgAevmKSVYdZI+S87W73NGKl6QbwK9L1BDSY5OrQuo8Oq15g==
 
 unique-string@~2.0.0:
   version "2.0.0"

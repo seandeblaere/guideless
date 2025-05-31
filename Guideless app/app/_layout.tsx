@@ -16,6 +16,8 @@ import {
   useFonts as useDMSansFonts
 } from '@expo-google-fonts/dm-sans';
 import "@/global.css";
+import "@/services/initializeBackgroundTasks";
+import { initializeGeofencing } from "@/services/GeofencingService";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -46,6 +48,21 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    const setupBackgroundTasks = async () => {
+      try {
+        await initializeGeofencing();
+        console.log('🎉 Background tasks initialized');
+      } catch (error) {
+        console.error('❌ Failed to initialize background tasks:', error);
+      }
+    };
+
+    if (isInitialized) {
+      setupBackgroundTasks();
+    }
+  }, [isInitialized]);
+
+  useEffect(() => {
     if (isInitialized && fontsLoaded) {
       SplashScreen.hideAsync();
     }
@@ -66,10 +83,10 @@ export default function RootLayout() {
   }, [user, isInitialized]);
 
   return (
-    <Stack screenOptions={{ headerShown: false,
+      <Stack screenOptions={{ headerShown: false,
      }}>
       <Stack.Screen name="(protected)" options={{ headerShown: false, animation: 'none',
-        navigationBarColor: '#F9FAFB'
+        navigationBarColor: '#F9FAFB',
        }} />
       <Stack.Screen name="auth" options={{ headerShown: false, animation: 'none',
         navigationBarColor: '#E3D7F7'

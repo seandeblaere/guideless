@@ -5,6 +5,7 @@ export type ClientRequest = {
     startLocation: Coordinates;
     endLocation?: Coordinates;
     isRoundTrip: boolean;
+    toAnywhere: boolean;
     durationMinutes: number;
     themeCategories: ThemeCategory[];
     maxPOICount: number;

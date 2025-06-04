@@ -1,11 +1,13 @@
 import { Coordinates } from "../shared/types/Coordinates";
 import { ThemeCategory } from "../shared/types/ThemeCategory";
 import { Route } from "../domain/models/Route";
+import { RouteType } from "../domain/interfaces/IRoute";
+
 export class RouteBuilder {
     private startLocation?: Coordinates;
     private endLocation?: Coordinates;
     private durationMinutes?: number;
-    private isRoundTrip: boolean = false;
+    private type: RouteType = RouteType.DESTINATION;
     private maxPOICount?: number;
     private themeCategories: ThemeCategory[] = [];
 
@@ -14,7 +16,7 @@ export class RouteBuilder {
         return this;
     }
 
-    withEndLocation(location: Coordinates): RouteBuilder {
+    withEndLocation(location?: Coordinates): RouteBuilder {
         this.endLocation = location;
         return this;
     }
@@ -27,8 +29,8 @@ export class RouteBuilder {
         return this;
     }
 
-    asRoundTrip(isRoundTrip: boolean = true): RouteBuilder {
-        this.isRoundTrip = isRoundTrip;
+    withRouteType(type: RouteType): RouteBuilder {
+        this.type = type;
         return this;
     }
 
@@ -54,7 +56,7 @@ export class RouteBuilder {
             throw new Error("Duration is required");
         }
         
-        if (!this.isRoundTrip && !this.endLocation) {
+        if (this.type === RouteType.DESTINATION && !this.endLocation) {
             throw new Error("End location is required for non-round-trip routes");
         }
         
@@ -69,7 +71,7 @@ export class RouteBuilder {
         return new Route(
             this.startLocation,
             this.durationMinutes,
-            this.isRoundTrip,
+            this.type,
             this.maxPOICount,
             this.themeCategories,
             this.endLocation

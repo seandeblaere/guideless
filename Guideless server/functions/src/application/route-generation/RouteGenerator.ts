@@ -10,6 +10,7 @@ import { RoutesService } from "../../infrastructure/api/RoutesService";
 import { DistanceMatrix } from "../../shared/types/DistanceMatrix";
 import { Route } from "../../domain/models/Route";
 import { protos } from "@googlemaps/routing";
+import { RouteType } from "../../domain/interfaces/IRoute";
 
 export class RouteGenerator {
         private placesService: PlacesService;
@@ -51,13 +52,15 @@ export class RouteGenerator {
             return new POI(place);
         });
 
-        const startPOI = POI.createLocationPOI(true);
+        const routeType = this.getRouteType(request);
 
-        const endPOI = POI.createLocationPOI(false);
+        const startPOI = POI.createStartPOI();
+        
+        const endPOI = (routeType === RouteType.ANYWHERE) ? undefined : POI.createEndPOI();
 
-        this.addDistancesToPOIs(pois, distanceMatrix, startPOI, endPOI, request.isRoundTrip);
+        this.addDistancesToPOIs(pois, distanceMatrix, startPOI, routeType, endPOI);
 
-        const route = this.buildRoute(request, startPOI, endPOI);
+        const route = this.buildRoute(request, routeType, startPOI, endPOI);
 
         const routeState = await RouteState.initialize(route, pois);
 
@@ -68,7 +71,7 @@ export class RouteGenerator {
         return computedRoute;
     }
 
-    private addDistancesToPOIs(pois: POI[], distanceMatrix: DistanceMatrix, startPOI: POI, endPOI: POI, isRoundTrip: boolean) {
+    private addDistancesToPOIs(pois: POI[], distanceMatrix: DistanceMatrix, startPOI: POI, routeType: RouteType, endPOI?: POI) {
         pois.forEach(poi => {
             const distances = distanceMatrix.get(poi.id);
 
@@ -86,10 +89,10 @@ export class RouteGenerator {
 
             poi.distances.set("start_location", startToPoiDistance);
             
-            if(isRoundTrip) {
+            if(routeType === RouteType.ROUND_TRIP && endPOI) {
                 poi.distances.set("end_location", startToPoiDistance);
             }
-            else {
+            else if(routeType === RouteType.DESTINATION && endPOI) {
                 const poiToEndDistance = distanceMatrix.get(poi.id)?.get("end_location");
 
                 if(!poiToEndDistance) {
@@ -108,10 +111,13 @@ export class RouteGenerator {
 
         startPOI.distances = startPOIDistances;
 
-        if(isRoundTrip) {
+        if(routeType === RouteType.ROUND_TRIP && endPOI) {
             endPOI.distances = startPOIDistances;
+            startPOI.distances.set("end_location", 0);
+            endPOI.distances.set("start_location", 0);
         }
-        else {
+
+        else if(routeType === RouteType.DESTINATION && endPOI) {
             const endPOIDistances = distanceMatrix.get("end_location");
 
             if(!endPOIDistances) {
@@ -122,28 +128,31 @@ export class RouteGenerator {
         }
     }
 
-    private buildRoute(request: ClientRequest, startPOI: POI, endPOI: POI): Route {
-        this.routeBuilder.withStartLocation(request.startLocation)
+    private buildRoute(request: ClientRequest, routeType: RouteType, startPOI: POI, endPOI?: POI): Route {
+        const route = this.routeBuilder
+            .withStartLocation(request.startLocation)
+            .withEndLocation(request.endLocation)
             .withDuration(request.durationMinutes)
             .withThemeCategories(request.themeCategories)
             .withMaxPOIs(request.maxPOICount)
-            .asRoundTrip(request.isRoundTrip)
-
-        if(request.endLocation && !request.isRoundTrip) {
-            this.routeBuilder.withEndLocation(request.endLocation);
-        }
-
-        const route = this.routeBuilder.build();
+            .withRouteType(routeType)
+            .build();
 
         route.insertPOI(startPOI, 0, 0);
 
-        if(request.isRoundTrip) {
-            route.insertPOI(endPOI, 1, 0);
-        }
-        else {
-            route.insertPOI(endPOI, 1, startPOI.getDistanceToPOI("end_location"));
+        if (endPOI) {
+            const insertCost = (routeType === RouteType.ROUND_TRIP) 
+                ? 0 
+                : startPOI.getDistanceToPOI("end_location");
+            route.insertPOI(endPOI, 1, insertCost);
         }
 
         return route;
+    }
+
+    private getRouteType(request: ClientRequest): RouteType {
+        if (request.toAnywhere) return RouteType.ANYWHERE;
+        if (request.isRoundTrip) return RouteType.ROUND_TRIP;
+        return RouteType.DESTINATION;
     }
 }

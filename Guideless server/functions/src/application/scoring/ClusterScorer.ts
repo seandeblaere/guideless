@@ -3,7 +3,6 @@ import { RawScore } from "../../shared/types/RawScore";
 import { CLUSTER_SCORING } from "../../shared/constants/ScoringConstants";
 
 export class ClusterScorer {
-
     public static calculateScores(availablePois: POI[], globalAvgDistance: number, isolatedHighScoringPois: POI[]): void {
         const rawClusterScores: RawScore[] = availablePois.map(poi => {
             return {

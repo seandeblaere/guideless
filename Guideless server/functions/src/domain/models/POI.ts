@@ -57,22 +57,30 @@ export class POI implements IPoi {
         this._distances = distances;
     }
 
-    public static createLocationPOI(isStart: boolean): POI {
-        const id = isStart ? "start_location" : "end_location";
-        const name = isStart ? "Starting Point" : "Ending Point";
-        
-        const place: IPlace = {
-            id,
-            name,
+    public static createStartPOI(): POI {
+        const startingPoint: IPlace = {
+            id: "start_location",
+            name: "Starting Point",
             rating: 0,
             userRatingCount: 0,
             types: [],
         };
         
-        const poi = new POI(place);
-        
-        return poi;
+        return new POI(startingPoint);
     }
+
+    public static createEndPOI(): POI {
+        const endingPoint: IPlace = {
+            id: "end_location",
+            name: "Ending Point",
+            rating: 0,
+            userRatingCount: 0,
+            types: [],
+        };
+
+        return new POI(endingPoint);
+    }
+    
 
     public getDistanceToPOI(poiId: string): number {
         return this._distances.get(poiId) ?? Infinity;

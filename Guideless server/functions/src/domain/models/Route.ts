@@ -1,24 +1,24 @@
 import { Coordinates } from "../../shared/types/Coordinates";
 import { POI } from "./POI";
-import { IRoute } from "../interfaces/IRoute";
+import { IRoute, RouteType } from "../interfaces/IRoute";
 import { ThemeCategory } from "../../shared/types/ThemeCategory";
 
 export class Route implements IRoute {
     public readonly startLocation: Coordinates;
     public readonly endLocation?: Coordinates;
     public readonly maxDurationMinutes: number;
-    public readonly isRoundTrip: boolean;
+    public readonly type: RouteType;
     public readonly maxPOICount: number;
     public readonly themeCategories: ThemeCategory[];
 
     private _totalDurationMinutes: number = 0;
     private _pois: POI[] = [];
 
-    constructor(startLocation: Coordinates, durationMinutes: number, isRoundTrip: boolean, maxPOICount: number, themeCategories: ThemeCategory[], endLocation?: Coordinates) {
+    constructor(startLocation: Coordinates, durationMinutes: number, type: RouteType, maxPOICount: number, themeCategories: ThemeCategory[], endLocation?: Coordinates) {
         this.startLocation = startLocation;
         this.endLocation = endLocation;
         this.maxDurationMinutes = durationMinutes;
-        this.isRoundTrip = isRoundTrip;
+        this.type = type;
         this.maxPOICount = maxPOICount;
         this.themeCategories = themeCategories;
     }
@@ -27,7 +27,7 @@ export class Route implements IRoute {
         const newRoute = new Route(
             route.startLocation,
             route.maxDurationMinutes,
-            route.isRoundTrip,
+            route.type,
             route.maxPOICount,
             route.themeCategories,
             route.endLocation

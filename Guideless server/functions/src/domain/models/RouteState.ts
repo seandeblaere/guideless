@@ -3,6 +3,7 @@ import { POI } from "./POI";
 import { ClusterScorer } from "../../application/scoring/ClusterScorer";
 import { QualityScorer } from "../../application/scoring/QualityScorer";
 import { ThemeScorer } from "../../application/scoring/ThemeScorer";
+import { RouteType } from "../interfaces/IRoute";
 
 export class RouteState {
     private readonly _route: Route;
@@ -41,6 +42,14 @@ export class RouteState {
         return this._globalAvgDistance;
     }
 
+    public get poiCount(): number {
+        return this._route.pois.length;
+    }
+
+    public get poiCountWithoutStartAndEnd(): number {
+        return this.poiCount - (this._route.type === RouteType.ANYWHERE ? 1 : 2);
+    }
+
     public withAddedPoi(poi: POI, position: number, duration: number): RouteState {
         const newRoute = Route.from(this._route);
 
@@ -57,7 +66,7 @@ export class RouteState {
 
     public isComplete(): boolean {
         return this._availablePois.length === 0 ||
-               this._route.pois.length - 2 === this._route.maxPOICount ||
+               this.poiCountWithoutStartAndEnd === this._route.maxPOICount ||
                this.remainingTime <= 0;
     }
 

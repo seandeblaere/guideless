@@ -1,7 +1,7 @@
 import { Coordinates } from "../shared/types/Coordinates";
 import { ThemeCategory } from "../shared/types/ThemeCategory";
 import { Route } from "../domain/models/Route";
-import { RouteType } from "../domain/interfaces/IRoute";
+import { RouteType } from "../shared/enums/RouteType";
 
 export class RouteBuilder {
     private startLocation?: Coordinates;

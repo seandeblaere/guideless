@@ -1,5 +1,6 @@
 import { POI } from "../models/POI";
 import { Coordinates } from "../../shared/types/Coordinates";
+import { RouteType } from "../../shared/enums/RouteType";
 
 export interface IRoute {
     startLocation: Coordinates;
@@ -10,10 +11,4 @@ export interface IRoute {
     pois: readonly POI[];
     totalDurationMinutes: number;
     insertPOI(poi: POI, position: number, duration: number): void;
-}
-
-export enum RouteType {
-    ROUND_TRIP = "round_trip",
-    DESTINATION = "destination",
-    ANYWHERE = "anywhere",
 }

@@ -1,1 +1,1 @@
-export type ThemeCategory = "culture" | "nature" | "history";
+export type ThemeCategory = "culture" | "nature" | "history" | "food";

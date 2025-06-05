@@ -1,9 +1,12 @@
 import { IPlace } from "../interfaces/IPlace";
 import { DEFAULT_ROUTE_WEIGHTS } from "../../shared/constants/ScoringConstants";
 import { IPoi } from "../interfaces/IPOI";
+import { Coordinates } from "../../shared/types/Coordinates";
+
 export class POI implements IPoi {
     public readonly id: string;
     public readonly name?: string;
+    public readonly coordinates?: Coordinates;
     public readonly rating?: number;
     public readonly userRatingCount?: number;
     public readonly types?: string[];
@@ -16,6 +19,7 @@ export class POI implements IPoi {
     constructor(place: IPlace) {
         this.id = place.id;
         this.name = place.name;
+        this.coordinates = place.coordinates;
         this.rating = place.rating;
         this.userRatingCount = place.userRatingCount;
         this.types = place.types;
@@ -57,10 +61,11 @@ export class POI implements IPoi {
         this._distances = distances;
     }
 
-    public static createStartPOI(): POI {
+    public static createStartPOI(coordinates: Coordinates): POI {
         const startingPoint: IPlace = {
             id: "start_location",
             name: "Starting Point",
+            coordinates: coordinates,
             rating: 0,
             userRatingCount: 0,
             types: [],
@@ -69,10 +74,11 @@ export class POI implements IPoi {
         return new POI(startingPoint);
     }
 
-    public static createEndPOI(): POI {
+    public static createEndPOI(coordinates?: Coordinates): POI {
         const endingPoint: IPlace = {
             id: "end_location",
             name: "Ending Point",
+            coordinates: coordinates,
             rating: 0,
             userRatingCount: 0,
             types: [],

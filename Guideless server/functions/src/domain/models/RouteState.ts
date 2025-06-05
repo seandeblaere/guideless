@@ -3,7 +3,7 @@ import { POI } from "./POI";
 import { ClusterScorer } from "../../application/scoring/ClusterScorer";
 import { QualityScorer } from "../../application/scoring/QualityScorer";
 import { ThemeScorer } from "../../application/scoring/ThemeScorer";
-import { RouteType } from "../interfaces/IRoute";
+import { RouteType } from "../../shared/enums/RouteType";
 
 export class RouteState {
     private readonly _route: Route;

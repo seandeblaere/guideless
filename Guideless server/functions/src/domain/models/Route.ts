@@ -1,6 +1,7 @@
 import { Coordinates } from "../../shared/types/Coordinates";
 import { POI } from "./POI";
-import { IRoute, RouteType } from "../interfaces/IRoute";
+import { IRoute } from "../interfaces/IRoute";
+import { RouteType } from "../../shared/enums/RouteType";
 import { ThemeCategory } from "../../shared/types/ThemeCategory";
 
 export class Route implements IRoute {

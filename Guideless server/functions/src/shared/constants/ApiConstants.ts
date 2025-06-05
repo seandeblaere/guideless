@@ -1,5 +1,5 @@
 export const API_FIELD_MASKS = {
-    NEARBY_PLACES: "places.displayName,places.id,places.rating,places.userRatingCount,places.types",
+    NEARBY_PLACES: "places.displayName,places.id,places.rating,places.userRatingCount,places.types,places.location.latitude,places.location.longitude",
     DISTANCE_MATRIX: "originIndex,destinationIndex,duration",
     ROUTE: "routes.duration,routes.distanceMeters,routes.polyline,routes.optimizedIntermediateWaypointIndex"
 } as const;

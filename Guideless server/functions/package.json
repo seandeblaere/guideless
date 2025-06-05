@@ -15,6 +15,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@google/genai": "^1.4.0",
     "@googlemaps/places": "^2.0.1",
     "@googlemaps/routing": "^2.0.1",
     "firebase-admin": "^12.6.0",

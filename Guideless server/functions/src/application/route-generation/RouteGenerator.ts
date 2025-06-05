@@ -10,22 +10,26 @@ import { RoutesService } from "../../infrastructure/api/RoutesService";
 import { DistanceMatrix } from "../../shared/types/DistanceMatrix";
 import { Route } from "../../domain/models/Route";
 import { protos } from "@googlemaps/routing";
-import { RouteType } from "../../domain/interfaces/IRoute";
+import { RouteType } from "../../shared/enums/RouteType";
+import { StoreService } from "../../infrastructure/firebase/StoreService";
+import { RouteConverter } from "../converters/RouteConverter";
 
 export class RouteGenerator {
         private placesService: PlacesService;
         private distanceMatrixService: DistanceMatrixService;
         private routeBuilder: RouteBuilder;
         private routesService: RoutesService;
+        private storeService: StoreService;
 
     constructor() {
         this.placesService = new PlacesService();
         this.distanceMatrixService = new DistanceMatrixService();
         this.routeBuilder = new RouteBuilder();
         this.routesService = new RoutesService();
+        this.storeService = new StoreService();
     }
 
-    async generateRoute(request: ClientRequest): Promise<protos.google.maps.routing.v2.IComputeRoutesResponse> {
+    async generateRoute(userId: string, request: ClientRequest): Promise<protos.google.maps.routing.v2.IComputeRoutesResponse & { routeId: string }> {
         const themeTypes = await getThemeTypes(request.themeCategories);
 
         const places = await this.placesService.searchNearbyPlaces({
@@ -54,9 +58,9 @@ export class RouteGenerator {
 
         const routeType = this.getRouteType(request);
 
-        const startPOI = POI.createStartPOI();
+        const startPOI = POI.createStartPOI(request.startLocation);
         
-        const endPOI = (routeType === RouteType.ANYWHERE) ? undefined : POI.createEndPOI();
+        const endPOI = (routeType === RouteType.ANYWHERE) ? undefined : POI.createEndPOI(request.endLocation);
 
         this.addDistancesToPOIs(pois, distanceMatrix, startPOI, routeType, endPOI);
 
@@ -68,7 +72,16 @@ export class RouteGenerator {
 
         const computedRoute = await this.routesService.computeRoute(optimizedRouteState.route);
 
-        return computedRoute;
+        const routeDocument = RouteConverter.convertToRouteDocument(optimizedRouteState.route, request, computedRoute);
+
+        const poiDocuments = RouteConverter.convertToPOIDocuments(optimizedRouteState.route.pois);
+
+        const routeId = await this.storeService.saveRoute(userId, routeDocument, poiDocuments);
+
+        return {
+            ...computedRoute,
+            routeId
+        };
     }
 
     private addDistancesToPOIs(pois: POI[], distanceMatrix: DistanceMatrix, startPOI: POI, routeType: RouteType, endPOI?: POI) {

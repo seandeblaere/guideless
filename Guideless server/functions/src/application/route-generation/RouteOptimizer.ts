@@ -1,4 +1,4 @@
-import { RouteType } from "../../domain/interfaces/IRoute";
+import { RouteType } from "../../shared/enums/RouteType";
 import { RouteState } from "../../domain/models/RouteState";
 import { FixedEndOptimizer } from "../../strategies/optimization/FixedEndOptimizer";
 import { LooseEndOptimizer } from "../../strategies/optimization/LooseEndOptimize";

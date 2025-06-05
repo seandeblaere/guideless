@@ -38,6 +38,10 @@ export class PlacesService {
                 rating: place.rating ?? 0,
                 userRatingCount: place.userRatingCount ?? 0,
                 types: place.types ?? [],
+                coordinates: place.location ? {
+                    latitude: place.location.latitude!,
+                    longitude: place.location.longitude!
+                } : undefined
             })); 
 
         } catch (error) {

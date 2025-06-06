@@ -13,7 +13,7 @@ export class PlacesService {
 
     constructor() {
         this.placesClient = new PlacesClient({
-            key: apiConfig.googleMapsApiKey
+            key: apiConfig.googleMaps.apiKey
         });
         this.apiRequestBuilder = new ApiRequestBuilder("nearbyPlacesRequest");
     }

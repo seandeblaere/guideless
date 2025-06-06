@@ -1,7 +1,8 @@
 export enum ContentType {
     STORY = 'story',
+    FOOD_TIP = 'food_tip',
+    NATURE_INFO = 'nature_info',
     FUN_FACT = 'fun_fact',
-    DESCRIPTION = 'description',
     HISTORICAL_CONTEXT = 'historical_context',
-    LOCAL_TIPS = 'local_tips'
+    DESCRIPTION = 'description'
 }

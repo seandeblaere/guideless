@@ -1,28 +1,24 @@
-export const API_FIELD_MASKS = {
-    NEARBY_PLACES: "places.displayName,places.id,places.rating,places.userRatingCount,places.types,places.location.latitude,places.location.longitude",
-    DISTANCE_MATRIX: "originIndex,destinationIndex,duration",
-    ROUTE: "routes.duration,routes.distanceMeters,routes.polyline,routes.optimizedIntermediateWaypointIndex"
-} as const;
+import { apiConfig } from "../../config/ApiConfig";
 
 export const API_CALL_OPTIONS = {
     NEARBY_PLACES: {
         otherArgs: {
             headers: {
-                'X-Goog-FieldMask': API_FIELD_MASKS.NEARBY_PLACES,
+                'X-Goog-FieldMask': apiConfig.googleMaps.nearByPlaces.fieldMask,
             },
         },
     },
     DISTANCE_MATRIX: {
         otherArgs: {
             headers: {
-                'X-Goog-FieldMask': API_FIELD_MASKS.DISTANCE_MATRIX,
+                'X-Goog-FieldMask': apiConfig.googleMaps.distanceMatrix.fieldMask,
             },
         },
     },
     ROUTE: {
         otherArgs: {
             headers: {
-                'X-Goog-FieldMask': API_FIELD_MASKS.ROUTE,
+                'X-Goog-FieldMask': apiConfig.googleMaps.route.fieldMask,
             },
         },
     },

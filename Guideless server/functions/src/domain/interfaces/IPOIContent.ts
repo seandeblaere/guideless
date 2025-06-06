@@ -3,10 +3,6 @@ import { ContentType } from "../../shared/enums/ContentType";
 
 export interface POIContent {
     contentTypes: ContentType[];
-    story: string | null;
-    funFact: string | null;
-    description: string | null;
-    historicalContext: string | null;
-    localTips: string | null;
+    content: string | null;
     generatedAt: Timestamp | null;
 }

@@ -13,7 +13,7 @@ export class DistanceMatrixService {
     private apiRequestBuilder: ApiRequestBuilder;
 
     constructor() {
-        this.routingClient = new RoutesClient({key: apiConfig.googleMapsApiKey});
+        this.routingClient = new RoutesClient({key: apiConfig.googleMaps.apiKey});
         this.distanceMatrix = new Map();
         this.apiRequestBuilder = new ApiRequestBuilder("distanceMatrixRequest");
     }

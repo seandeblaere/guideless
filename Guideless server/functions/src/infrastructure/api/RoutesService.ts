@@ -11,7 +11,7 @@ export class RoutesService {
     private apiRequestBuilder: ApiRequestBuilder;
 
     constructor() {
-        this.routingClient = new RoutesClient({key: apiConfig.googleMapsApiKey});
+        this.routingClient = new RoutesClient({key: apiConfig.googleMaps.apiKey});
         this.apiRequestBuilder = new ApiRequestBuilder("routeRequest");
     }
     

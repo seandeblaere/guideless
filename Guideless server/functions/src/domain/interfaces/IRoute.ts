@@ -1,6 +1,6 @@
-import { POI } from "../models/POI";
-import { Coordinates } from "../../shared/types/Coordinates";
-import { RouteType } from "../../shared/enums/RouteType";
+import {POI} from "../models/POI";
+import {Coordinates} from "../../shared/types/Coordinates";
+import {RouteType} from "../../shared/enums/RouteType";
 
 export interface IRoute {
     startLocation: Coordinates;

@@ -1,4 +1,4 @@
-import { IPlace } from "./IPlace";
+import {IPlace} from "./IPlace";
 
 export interface IPoi extends IPlace {
     baseScore: number;

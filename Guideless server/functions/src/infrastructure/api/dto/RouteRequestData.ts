@@ -1,4 +1,4 @@
-import { Location } from "./DistanceMatrixRequestData";
+import {Location} from "./DistanceMatrixRequestData";
 
 export type Intermediate = {
     placeId: string;

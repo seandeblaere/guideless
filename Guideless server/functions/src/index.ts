@@ -1,48 +1,95 @@
-import {onRequest} from "firebase-functions/v2/https";
+import {onCall, HttpsError} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import { RouteGenerator } from "./application/route-generation/RouteGenerator";
-import { onDocumentCreated } from "firebase-functions/firestore";
-import { ContentGenerator } from "./application/content-generation/ContentGenerator";
-import { IRouteDocument } from "./domain/interfaces/IRouteDocument";
-import { ContentGenerationStatus } from "./shared/enums/ContentGenerationStatus";
+import {RouteGenerator} from "./application/route-generation/RouteGenerator";
+import {onDocumentCreated} from "firebase-functions/firestore";
+import {ContentGenerator} from "./application/content-generation/ContentGenerator";
+import {IRouteDocument} from "./domain/interfaces/IRouteDocument";
+import {ContentGenerationStatus} from "./shared/enums/ContentGenerationStatus";
+import {POIVisitService} from "./application/poi/POIVisitService";
+import {StoreService} from "./infrastructure/firebase/StoreService";
 
 admin.initializeApp();
 export const db = admin.firestore();
 
-export const getRoute = onRequest(async (req, res) => {
-    try {
-        const userId = "test-user";
-        const routeGenerator = new RouteGenerator();
-        const route = await routeGenerator.generateRoute(userId, req.body);
+export const generateRoute = onCall(async (req) => {
+  try {
+    const userId = req.auth?.uid;
 
-        res.status(200).send(route);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send({ error: "Failed to generate route: " + error });
+    if (!userId) {
+      throw new HttpsError("unauthenticated", "User is not authenticated");
     }
+
+    const routeGenerator = new RouteGenerator();
+    const route = await routeGenerator.generateRoute(userId, req.data);
+
+    return route;
+  } catch (error) {
+    return {
+      success: false,
+      message: "Failed to generate route: " + error,
+    };
+  }
+});
+
+export const visitPOI = onCall(async (req) => {
+  try {
+    const userId = req.auth?.uid;
+    const {routeId, poiId} = req.data;
+
+    if (!userId) {
+      throw new HttpsError("unauthenticated", "User is not authenticated");
+    }
+
+    if (!routeId || !poiId) {
+      throw new HttpsError("invalid-argument", "Missing required parameters: routeId and poiId");
+    }
+
+    const poiVisitService = new POIVisitService();
+    const result = await poiVisitService.visitPOI(userId, routeId, poiId);
+
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      message: `Failed to visit POI: ${error}`,
+    };
+  }
+});
+
+export const getActiveRoute = onCall(async (req) => {
+  try {
+    const userId = req.auth?.uid;
+
+    if (!userId) {
+      throw new HttpsError("unauthenticated", "User is not authenticated");
+    }
+
+    const storeService = new StoreService();
+
+    const result = await storeService.getActiveRoute(userId);
+
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      message: `Failed to get active route: ${error}`,
+    };
+  }
 });
 
 export const generateRouteContent = onDocumentCreated(
-    "users/{userId}/routes/{routeId}",
-    async (event) => {
-        try {
-            const routeData = event.data?.data();
-            const userId = event.params.userId;
-            const routeId = event.params.routeId;
+  "users/{userId}/routes/{routeId}",
+  async (event) => {
+    const routeData = event.data?.data();
+    const userId = event.params.userId;
+    const routeId = event.params.routeId;
 
-            if (!routeData || routeData.contentGenerationStatus !== ContentGenerationStatus.PENDING) {
-                console.log('Route content generation not needed or already processed');
-                return;
-            }
-
-            console.log(`Generating content for route ${routeId} for user ${userId}`);
-            
-            const contentGenerator = new ContentGenerator(userId, routeId, routeData as IRouteDocument);
-            await contentGenerator.generateRouteContent();
-
-        } catch (error) {
-            console.error('Error generating route content:', error);
-        }
+    if (!routeData || routeData.contentGenerationStatus !== ContentGenerationStatus.PENDING) {
+      return;
     }
+
+    const contentGenerator = new ContentGenerator(userId, routeId, routeData as IRouteDocument);
+    await contentGenerator.generateRouteContent();
+  }
 );
 

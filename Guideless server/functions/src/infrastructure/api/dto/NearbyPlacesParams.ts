@@ -1,4 +1,4 @@
-import { Coordinates } from "../../../shared/types/Coordinates";
+import {Coordinates} from "../../../shared/types/Coordinates";
 
 export type NearbyPlacesParams = {
     coordinates: Coordinates;

@@ -1,5 +1,5 @@
-import { Coordinates } from "../../../shared/types/Coordinates";
-import { ThemeCategory } from "../../../shared/types/ThemeCategory";
+import {Coordinates} from "../../../shared/types/Coordinates";
+import {ThemeCategory} from "../../../shared/types/ThemeCategory";
 
 export type ClientRequest = {
     startLocation: Coordinates;

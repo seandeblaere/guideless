@@ -1,5 +1,5 @@
-import { Timestamp } from "firebase-admin/firestore";
-import { ContentType } from "../../shared/enums/ContentType";
+import {Timestamp} from "firebase-admin/firestore";
+import {ContentType} from "../../shared/enums/ContentType";
 
 export interface POIContent {
     contentTypes: ContentType[];

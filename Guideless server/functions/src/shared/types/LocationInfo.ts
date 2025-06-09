@@ -1,4 +1,4 @@
-import { Coordinates } from "./Coordinates";
+import {Coordinates} from "./Coordinates";
 
 export interface LocationInfo {
     coordinates: Coordinates;

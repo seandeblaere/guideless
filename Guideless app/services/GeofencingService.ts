@@ -11,9 +11,9 @@ TaskManager.defineTask(GEOFENCING_TASK_NAME, async ({ data: { eventType, region 
     return;
   }
   if (eventType === GeofencingEventType.Enter) {
-    Alert.alert("Entered:", region.identifier);
+    console.log("Entered:", region.identifier);
   } else if (eventType === GeofencingEventType.Exit) {
-    Alert.alert("Exited:", region.identifier);
+    console.log("Exited:", region.identifier);
   }
 });
 

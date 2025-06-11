@@ -1,21 +1,27 @@
-import { View, Text, StyleSheet, StatusBar, Pressable, Animated, Dimensions, Alert } from 'react-native';
-import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, StatusBar, Pressable, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCurrentStep, useRouteGeneratorActions } from '../../stores/RouteGeneratorStore';
+import { useCurrentStep, useRouteGeneratorActions, useCanProceedToNextStep, useFormData } from '../../stores/RouteGeneratorStore';
 import { DestinationStep } from '../../components/DestinationStep';
 import { DurationStep } from '../../components/DurationStep';
 import { CategoriesStep } from '../../components/CategorieStep';
-import { useLocationPermissions } from '@/hooks/useLocationPermissions';
-import { useRouteActions } from '@/stores/RouteStore';
+import { useRouteActions, useIsGeofencingActive, useIsTracking } from '@/stores/RouteStore';
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const currentStep = useCurrentStep();
-  const { nextStep, previousStep, resetForm, canProceedToNextStep } = useRouteGeneratorActions();
-  const { hasAllPermissions, requestPermissions } = useLocationPermissions();
+  const { nextStep, previousStep, resetForm } = useRouteGeneratorActions();
   const { startRouteTracking, generateRoute } = useRouteActions();
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const canProceedToNextStep = useCanProceedToNextStep();
+  const formData = useFormData();
+  const { getCurrentLocation } = useCurrentLocation();
+  const isTracking = useIsTracking();
+  const isGeofencingActive = useIsGeofencingActive();
+  const [isGeneratingRoute, setIsGeneratingRoute] = useState(false);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -26,7 +32,7 @@ export default function HomeScreen() {
   }, [currentStep]);
 
   const handleNext = () => {
-    if (canProceedToNextStep() && currentStep < 3) {
+    if (canProceedToNextStep && currentStep < 3) {
       nextStep();
     }
   };
@@ -38,16 +44,28 @@ export default function HomeScreen() {
   };
 
   const handleGenerateRoute = async () => {
-    if (!hasAllPermissions) {
-      const granted = await requestPermissions();
-      if (!granted) {
-        Alert.alert('Permissions Required', 'Location permissions are needed for route tracking.');
+    setIsGeneratingRoute(true);
+    try {
+      const location = await getCurrentLocation();
+      
+      if (!location) {
+        Alert.alert('Location Required', 'Location is needed to generate a route.');
         return;
       }
-    }
-    await generateRoute();
-    resetForm();
-    await startRouteTracking();
+
+      await generateRoute(formData, location);
+      await startRouteTracking();
+
+      if (isGeofencingActive && isTracking) {
+        console.log("Geofencing active and tracking, pushing to maps");
+        resetForm();
+        router.push('/maps');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to generate route: ' + error);
+    } finally {
+      setIsGeneratingRoute(false);
+    } 
   };
 
   const renderStepIndicator = () => (
@@ -128,10 +146,10 @@ export default function HomeScreen() {
               <Pressable
                 style={[
                   styles.nextButton,
-                  !canProceedToNextStep() && styles.disabledButton,
+                  !canProceedToNextStep && styles.disabledButton,
                 ]}
                 onPress={handleNext}
-                disabled={!canProceedToNextStep()}
+                disabled={!canProceedToNextStep}
               >
                 <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.nextButtonText]}>
                   Continue
@@ -141,14 +159,18 @@ export default function HomeScreen() {
               <Pressable
                 style={[
                   styles.generateButton,
-                  !canProceedToNextStep() && styles.disabledButton,
+                  !canProceedToNextStep && styles.disabledButton,
                 ]}
                 onPress={handleGenerateRoute}
-                disabled={!canProceedToNextStep()}
+                disabled={!canProceedToNextStep}
               >
-                <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.generateButtonText]}>
-                  Generate Route
-                </Text>
+                {isGeneratingRoute ? (
+                  <ActivityIndicator size="small" color="#FCFCFC" />
+                ) : (
+                  <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.generateButtonText]}>
+                    Generate Route
+                  </Text>
+                )}
               </Pressable>
             )}
           </View>

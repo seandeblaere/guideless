@@ -19,7 +19,6 @@ import {
 import "@/global.css";
 import "@/services/initializeBackgroundTasks";
 import { cleanupBackgroundTasks } from "@/services/GeofencingService";
-import { useLocationPermissions } from '@/hooks/useLocationPermissions';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,7 +30,6 @@ export default function RootLayout() {
   const segments = useSegments();
   const isRouteInitialized = useIsRouteInitialized();
   const { initializeRouteStore } = useRouteActions();
-  const { hasAllPermissions, requestPermissions } = useLocationPermissions();
 
   const [playfairLoaded] = usePlayfairFonts({
     PlayfairDisplay_400Regular,
@@ -53,14 +51,11 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if(!isInitialized) {
-      return;
-    }
     const setupBackgroundTasks = async () => {
       await cleanupBackgroundTasks();
     };
     setupBackgroundTasks();
-  }, [isInitialized]);
+  }, []);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -74,12 +69,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [isInitialized, fontsLoaded, isRouteInitialized]);
-
-  useEffect(() => {
-    if (!hasAllPermissions) {
-      requestPermissions();
-    }
-  }, []);
 
   useEffect(() => {
     if (!isInitialized || !isRouteInitialized || !fontsLoaded) {

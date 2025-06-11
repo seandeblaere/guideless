@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '@/firebaseConfig';
 import { getRouteStateFromRoute, getPOIStateFromPOIData, getRouteRequestFromFormData } from '@/helpers/convertRouteData';
-import { useFormData } from '@/stores/RouteGeneratorStore';
+import { RouteGeneratorFormData } from '@/stores/RouteGeneratorStore';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
 
@@ -77,17 +77,14 @@ interface RouteState {
   route: Route | null;
   pois: POI[];
   isGeofencingActive: boolean;
-  currentLocation: Coordinates | null;
   isLoading: boolean;
   actions: {
     setRoute: (route: Route) => void;
     setPois: (pois: POI[]) => void;
-    setCurrentLocation: (location: Coordinates) => void;
     setIsGeofencingActive: (isGeofencingActive: boolean) => void;
     startRouteTracking: () => Promise<void>;
     initializeRouteStore: () => Promise<void>;
-    generateRoute: () => Promise<void>;
-    setIsLoading: (isLoading: boolean) => void;
+    generateRoute: (formData: RouteGeneratorFormData, currentLocation: Coordinates) => Promise<void>;
     setIsInitialized: (isInitialized: boolean) => void; 
   };
 }
@@ -99,7 +96,6 @@ export const useRouteStore = create<RouteState>((set, get) => ({
   route: null,
   pois: [],
   isGeofencingActive: false,
-  currentLocation: null,
   isLoading: false,
   actions: {
     setHasActiveRoute: (hasActiveRoute: boolean) => {
@@ -120,23 +116,10 @@ export const useRouteStore = create<RouteState>((set, get) => ({
     setIsGeofencingActive: (isGeofencingActive: boolean) => {
       set({ isGeofencingActive });
     },
-    setCurrentLocation: (location: Coordinates) => {
-      set({ currentLocation: location });
-    },
-    setIsLoading: (isLoading: boolean) => {
-      set({ isLoading });
-    },
 
-    generateRoute: async () => {
+    generateRoute: async (formData: RouteGeneratorFormData, currentLocation: Coordinates) => {
       set({ isLoading: true });
-      const formData = useFormData();
-      const { currentLocation } = get();
-      if (!currentLocation) {
-        Alert.alert('Location Error', 'Unable to get your current location. Please make sure you have location permissions enabled and try again.');
-        set({ isLoading: false });
-        return;
-      }
-      const routeRequest = getRouteRequestFromFormData(formData, currentLocation);
+      const routeRequest = getRouteRequestFromFormData(formData, currentLocation); 
       const result = await generateRoute(routeRequest);
       if (!result) {
         Alert.alert('Error', 'Failed to generate route. Please try again.');
@@ -144,13 +127,11 @@ export const useRouteStore = create<RouteState>((set, get) => ({
         return;
       }
       const routeData = result.data as any;
-
-      if (!routeData.success) {
-        Alert.alert('Error generating route:', routeData.data.message || 'Failed to generate route. Please try again.');
+      if (!routeData) {
+        Alert.alert('Error generating route:', 'Failed to generate route. Please try again.');
         set({ isLoading: false });
         return;
       }
-
       const routeState = getRouteStateFromRoute(routeData.route as Route);
       const pois = routeData.pois.map((poi: any) => getPOIStateFromPOIData(poi));
       set({ route: routeState, pois: pois, hasActiveRoute: true });
@@ -169,6 +150,7 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       const success = await startGeofencingForRoute(pois);
       
       if (!success) {
+        console.log("Failed to start geofencing");
         return;
       }
 
@@ -176,14 +158,14 @@ export const useRouteStore = create<RouteState>((set, get) => ({
         isGeofencingActive: true,
         isTracking: true
       });
-
-      router.push('/maps');
       set({ isLoading: false });
   },
 
   initializeRouteStore: async () => {
+    set({ isInitialized: true });
+    return;
     const result = await getActiveRoute();
-
+    
     const routeData = result.data as any;
 
     if (!routeData.success) {
@@ -202,7 +184,7 @@ export const useRouteStore = create<RouteState>((set, get) => ({
 export const useRoute = () => useRouteStore((state) => state.route);
 export const usePois = () => useRouteStore((state) => state.pois);
 export const useIsGeofencingActive = () => useRouteStore((state) => state.isGeofencingActive);
-export const useCurrentLocation = () => useRouteStore((state) => state.currentLocation);
 export const useIsInitialized = () => useRouteStore((state) => state.isInitialized);
 export const useIsLoading = () => useRouteStore((state) => state.isLoading);
 export const useRouteActions = () => useRouteStore((state) => state.actions);
+export const useIsTracking = () => useRouteStore((state) => state.isTracking);

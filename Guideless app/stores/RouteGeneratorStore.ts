@@ -17,8 +17,7 @@ interface RouteGeneratorActions {
   toggleCategory: (category: string) => void;
   resetForm: () => void;
   nextStep: () => void;
-  previousStep: () => void;
-  canProceedToNextStep: () => boolean;
+  previousStep: () => void; 
 }
 
 interface RouteGeneratorState {
@@ -98,33 +97,33 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
         }
         return {};
       }),
-
-  canProceedToNextStep: (): boolean => {
-    const { formData, currentStep } = get();
-
-    switch (currentStep) {
-      case 1:
-        if (formData.destination.type !== 'address') {
-          return true;
-        }
-        if(formData.destination.address && formData.destination.address.trim().length > 0) {
-          return true;
-        }
-        return false;
-      
-      case 2:
-        return formData.durationMinutes >= 30;
-      
-      case 3:
-        return formData.categories.length > 0;
-      
-      default:
-        return false;
-    }
-  },
   },
 }));
 
 export const useCurrentStep = () => useRouteGeneratorStore((state) => state.currentStep);
 export const useFormData = () => useRouteGeneratorStore((state) => state.formData);
 export const useRouteGeneratorActions = () => useRouteGeneratorStore((state) => state.actions);
+
+export const useCanProceedToNextStep = (): boolean => {
+  const formData = useFormData();
+  const currentStep = useCurrentStep();
+  switch (currentStep) {
+    case 1:
+      if (formData.destination.type !== 'address') {
+        return true;
+      }
+      if(formData.destination.address && formData.destination.address.trim().length > 0) {
+        return true;
+      }
+      return false;
+    
+    case 2:
+      return formData.durationMinutes >= 30;
+    
+    case 3:
+      return formData.categories.length > 0;
+    
+    default:
+      return false;
+  }
+}

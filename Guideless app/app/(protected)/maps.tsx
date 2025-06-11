@@ -1,57 +1,72 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, StatusBar, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Dimensions, StatusBar, ActivityIndicator, SafeAreaView, TouchableOpacity } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import { decode } from '@googlemaps/polyline-codec';
 import { useRouteStore } from '@/stores/RouteStore';
+import { useCurrentLocation } from '@/hooks/useCurrentLocation';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function MapScreen() {
-  const { route, currentLocation, pois } = useRouteStore();
-  const [myLocation, setMyLocation] = useState<{latitude: number, longitude: number} | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const { route, pois, isLoading:isLoadingRoute } = useRouteStore();
+  const { location, isLoading: isLoadingLocation, isLoadingForMapFocus, getCurrentLocation, getLocationForMapFocus } = useCurrentLocation();
+  const mapRef = useRef<MapView>(null);
+  const decodedPolyline = route?.polyline ? decode(route.polyline, 5) : null;
 
   useEffect(() => {
-    const getLocation = async () => {
-      try {
-        const location = currentLocation;
-        if (location) {
-          setMyLocation(location);
-        }
-      } catch (error) {
-        console.error('Error getting location:', error);
-      } finally {
-        setIsLoadingLocation(false);
-      }
-    };
-    getLocation();
+    console.log("MapScreen mounted");
+    getCurrentLocation();
   }, []);
 
-  if (isLoadingLocation || !myLocation) {
+  const centerOnUserLocation = async () => {
+    if (!mapRef.current) return;
+
+      const position = await getLocationForMapFocus();
+
+      if (!position) {
+        return;
+      }
+      
+      mapRef.current.animateToRegion({
+        latitude: position.latitude,
+        longitude: position.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      }, 1000);
+  };
+
+  if (isLoadingRoute || isLoadingLocation || !location) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <StatusBar translucent backgroundColor="transparent" />
-        <ActivityIndicator size="large" color="#764D9D" />
+        <ActivityIndicator size={48} color="#764D9D" />
       </View>
     );
   }
 
-  const decodedPolyline = route?.polyline ? decode(route.polyline, 5) : [];
-
   return (
     <>
-      <StatusBar translucent backgroundColor="transparent" />
-      <View style={styles.container}>     
+      <SafeAreaView style={styles.container}>     
+        <StatusBar translucent backgroundColor="transparent" />
         <MapView
+          ref={mapRef}
           style={styles.map}
           initialRegion={{
-            latitude: myLocation.latitude,
-            longitude: myLocation.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
           }}
           provider={PROVIDER_GOOGLE}
-          mapType="hybrid"
+          mapType="satellite"
+          showsCompass={false}
+          toolbarEnabled={false}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+          loadingEnabled={true}
+          loadingIndicatorColor="#764D9D"
+          loadingBackgroundColor="#FCFCFC"
         >
-          {decodedPolyline.length > 0 && (
+          {decodedPolyline && decodedPolyline.length > 0 && (
             <Polyline
               coordinates={decodedPolyline.map(([latitude, longitude]) => ({
                 latitude,
@@ -61,13 +76,6 @@ export default function MapScreen() {
               strokeWidth={4}
             />
           )}
-          
-          <Marker
-            coordinate={myLocation}
-            title="My Location"
-            description="This is your current location"
-            pinColor="#2563EB"
-          />
 
           {pois.map((poi, index) => (
             <Marker
@@ -77,12 +85,22 @@ export default function MapScreen() {
                 longitude: poi.locationRegion.longitude,
               }}
               title={poi.name}
-              description={`POI ${index + 1}`}
               pinColor="#E3D7F7"
             />
           ))}
         </MapView>
-      </View>
+        
+        <TouchableOpacity 
+          style={styles.myLocationButton} 
+          onPress={centerOnUserLocation}
+        >
+          {isLoadingForMapFocus ? (
+            <ActivityIndicator size="small" color="#764D9D" />
+          ) : (
+            <MaterialIcons name="my-location" size={28} color="#764D9D" />
+          )}
+        </TouchableOpacity>
+      </SafeAreaView>
     </>
   );
 }
@@ -101,30 +119,17 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
   },
-  errorContainer: {
+  myLocationButton: {
     position: 'absolute',
     top: 50,
-    left: 10,
-    right: 10,
-    backgroundColor: 'rgba(255, 0, 0, 0.9)',
-    padding: 10,
-    borderRadius: 5,
-    zIndex: 1000,
-  },
-  errorText: {
-    color: 'white',
-    fontSize: 12,
-  },
-  statusContainer: {
-    position: 'absolute',
-    bottom: 50,
-    left: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 10,
-    borderRadius: 5,
-  },
-  statusText: {
-    color: 'white',
-    fontSize: 14,
-  },
+    right: 20,
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  }
 });

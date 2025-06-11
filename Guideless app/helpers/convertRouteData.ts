@@ -44,6 +44,8 @@ export function getPOIStateFromPOIData(poi: any) {
 }
 
 export function getRouteRequestFromFormData(formData: RouteGeneratorFormData, location: Coordinates) {
+  console.log('Form data in getRouteRequestFromFormData:', formData);
+  console.log('Location in getRouteRequestFromFormData:', location);
   const routeRequest = {
     startLocation: location,
     endLocation: formData.destination.type === 'address' && formData.destination.address ? formData.destination.address : null,

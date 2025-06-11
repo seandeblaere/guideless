@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import * as Location from 'expo-location';
 
 export function useLocationPermissions() {
@@ -18,7 +19,7 @@ export function useLocationPermissions() {
       setForegroundStatus(foreground.status);
       setBackgroundStatus(background.status);
     } catch (error) {
-      console.error('Error checking permissions:', error);
+      Alert.alert('Error', 'Failed to check location permissions. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +40,7 @@ export function useLocationPermissions() {
       await checkPermissions();
       return true;
     } catch (error) {
-      console.error('Error requesting permissions:', error);
+      Alert.alert('Error', 'Failed to request location permissions. Please try again.');
       return false;
     }
   };

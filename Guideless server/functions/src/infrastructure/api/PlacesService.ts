@@ -51,7 +51,10 @@ export class PlacesService {
   }
 
   private getRequestData(params: NearbyPlacesParams): NearbyPlacesRequestData {
-    this.apiRequestBuilder.setCoordinates(params.coordinates);
+    this.apiRequestBuilder.setStartLocation(params.startLocation);
+    if (params.endLocation) {
+      this.apiRequestBuilder.setEndLocation(params.endLocation);
+    }
     this.apiRequestBuilder.setDurationMinutes(params.durationMinutes);
     this.apiRequestBuilder.setIncludedTypes(params.includedTypes);
 

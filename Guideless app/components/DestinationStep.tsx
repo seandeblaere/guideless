@@ -76,10 +76,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#2E3A59',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 20,
   },
   optionsContainer: {
     gap: 16,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 15,
     borderRadius: 15,
     backgroundColor: '#F8F9FA',
     borderWidth: 2,

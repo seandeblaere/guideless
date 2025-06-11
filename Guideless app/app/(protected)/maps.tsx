@@ -1,36 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, StatusBar } from 'react-native';
+import { View, StyleSheet, Dimensions, StatusBar, ActivityIndicator } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import { decode } from '@googlemaps/polyline-codec';
-import * as Location from 'expo-location';
+import { useRouteStore } from '@/stores/RouteStore';
 
 export default function MapScreen() {
-  const encodedPolyline = 'wesvHstuUC}A\\EXItBmAM\\L]j@[GSEUEYEg@Ic@Sg@OMy@sBKQCEKQgA}@DUVw@BIFSBIBSZb@HHJBJEf@p@p@v@j@n@p@wBd@aBV}@ZVNNFBFB@?F?XCFAH@FBDBbAn@Je@`@mCNeABSHAl@h@BBd@`@NRX`@HNZf@DFEGI`@Mp@?@Or@Or@FD@ABW@KDEHE@D@B@@@BNH?J?NBN@J@DT^Cd@Gd@Eb@Eb@MhACVATEp@?x@?`A?Z@Z?V@h@@Z?R@L?L?HI@A@?@?@?@?B@F?DE??AA??EAA?C?A?E@W]@SBWBO@C@MBC@IBGDC@I?K?EAQAKCJBaAjEELCLOPCDEH@JDZHV@Br@jAJLPRPRd@n@JVLXCFAPAd@EfAAVNGn@ILBVCH?B?~CUDGrAMBJAGDAbAMJAH?ZCFC~@ILC|@ETBtCMF?jAIHENEj@f@FAPHHBL?t@QFD~Cw@z@UHC^IJ?lCi@H@Bi@CqB@OA[?Q^Ab@CZAL?BbBExBChAStBr@n@RLDDXTHFHNF?ZNv@d@LHnA|@FY?ED[`@mCVwARyBBYHBlBf@PFPDdAVF@XFD@F@D@BIVq@JS@EDG?APa@DI@EH]DKLSBIHYTi@NSFQDQPc@BGLEFQ@CJe@Pa@HQJWd@eATg@Pa@JSDIJQH]h@cALYHO@C@ERa@DMNWJULKh@oAv@gBFQFO@QBGgCoDQWYe@qAoB[c@CFGECA?a@?QGAQAEAAiD?MoAA_CGKIkCGAFG`AAZoAe@MEiAc@]IOCgBUOEkDq@ICQEMAUEMAoDi@I?c@GG?CASAQAKAEAQAONAqC@pCG?E@K@gATa@HSBMDYJiAp@IFYHm@P{@VMCo@RGBIDIBGBC@AP@\\BTJr@Lz@Dx@h@?LEJDDDDF@J@\\HhBFtA@`@FvA@v@@~@BPHrBJjCANEBEBI@yAAWEICI?AMuAEk@CIAk@Iw@Wa@Ye@c@[Sg@So@M';
-
+  const { route, currentLocation, pois } = useRouteStore();
   const [myLocation, setMyLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
   useEffect(() => {
     const getLocation = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        return;
+      try {
+        const location = currentLocation;
+        if (location) {
+          setMyLocation(location);
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+      } finally {
+        setIsLoadingLocation(false);
       }
-      const location = await Location.getCurrentPositionAsync();
-      setMyLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
     };
     getLocation();
   }, []);
-  
 
-  const initialLocation = {
-    latitude: 51.057567,
-    longitude: 3.720600,
-  };
+  if (isLoadingLocation || !myLocation) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <StatusBar translucent backgroundColor="transparent" />
+        <ActivityIndicator size="large" color="#764D9D" />
+      </View>
+    );
+  }
 
-  const decodedPolyline = decode(encodedPolyline, 5);
+  const decodedPolyline = route?.polyline ? decode(route.polyline, 5) : [];
 
   return (
     <>
@@ -39,29 +43,44 @@ export default function MapScreen() {
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: initialLocation.latitude,
-            longitude: initialLocation.longitude,
+            latitude: myLocation.latitude,
+            longitude: myLocation.longitude,
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
           }}
           provider={PROVIDER_GOOGLE}
           mapType="hybrid"
         >
-          <Polyline
-            coordinates={decodedPolyline.map(([latitude, longitude]) => ({
-              latitude,
-              longitude,
-            }))}
-            strokeColor="#FFF"
-            strokeWidth={4}
-          />
-          {myLocation && (
-            <Marker
-              coordinate={myLocation}
-              title="My Location"
-              description="This is my current location"
+          {decodedPolyline.length > 0 && (
+            <Polyline
+              coordinates={decodedPolyline.map(([latitude, longitude]) => ({
+                latitude,
+                longitude,
+              }))}
+              strokeColor="#FDD6DF"
+              strokeWidth={4}
             />
           )}
+          
+          <Marker
+            coordinate={myLocation}
+            title="My Location"
+            description="This is your current location"
+            pinColor="#2563EB"
+          />
+
+          {pois.map((poi, index) => (
+            <Marker
+              key={poi.placeId}
+              coordinate={{
+                latitude: poi.locationRegion.latitude,
+                longitude: poi.locationRegion.longitude,
+              }}
+              title={poi.name}
+              description={`POI ${index + 1}`}
+              pinColor="#E3D7F7"
+            />
+          ))}
         </MapView>
       </View>
     </>
@@ -71,6 +90,11 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FCFCFC',
   },
   map: {
     flex: 1,

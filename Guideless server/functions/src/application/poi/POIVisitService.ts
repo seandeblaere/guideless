@@ -2,6 +2,7 @@ import {db} from "../../index";
 import {Timestamp} from "firebase-admin/firestore";
 import {POIDocument} from "../../domain/interfaces/IPOIDocument";
 import {IRouteDocument} from "../../domain/interfaces/IRouteDocument";
+import { HttpsError } from "firebase-functions/v1/https";
 
 export interface POIVisitResponse {
     success: boolean;
@@ -28,21 +29,11 @@ export class POIVisitService {
         ]);
 
         if (!routeDoc.exists) {
-          return {
-            success: false,
-            poi: null,
-            routeProgress: {visitedPOIs: 0, totalPOIs: 0, completionPercentage: 0, routeCompleted: false},
-            message: "Route not found",
-          };
+          throw new HttpsError("not-found", "Route not found");
         }
 
         if (!poiDoc.exists) {
-          return {
-            success: false,
-            poi: null,
-            routeProgress: {visitedPOIs: 0, totalPOIs: 0, completionPercentage: 0, routeCompleted: false},
-            message: "POI not found",
-          };
+          throw new HttpsError("not-found", "POI not found");
         }
 
         const routeData = routeDoc.data() as IRouteDocument;

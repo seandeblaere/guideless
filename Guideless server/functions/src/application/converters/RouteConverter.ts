@@ -55,7 +55,7 @@ export class RouteConverter {
       content: null,
 
       locationRegion: {
-        identifier: `poi_${index}`,
+        identifier: poi.id,
         latitude: poi.coordinates!.latitude,
         longitude: poi.coordinates!.longitude,
         radius: 50,

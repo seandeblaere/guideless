@@ -9,7 +9,6 @@ import {getThemeTypes} from "../../infrastructure/firebase/ThemeRepository";
 import {RoutesService} from "../../infrastructure/api/RoutesService";
 import {DistanceMatrix} from "../../shared/types/DistanceMatrix";
 import {Route} from "../../domain/models/Route";
-import {protos} from "@googlemaps/routing";
 import {RouteType} from "../../shared/enums/RouteType";
 import {StoreService} from "../../infrastructure/firebase/StoreService";
 import {RouteConverter} from "../converters/RouteConverter";
@@ -31,11 +30,12 @@ export class RouteGenerator {
     this.storeService = new StoreService();
   }
 
-  async generateRoute(userId: string, request: ClientRequest): Promise<protos.google.maps.routing.v2.IComputeRoutesResponse & { routeId: string, route: IRouteDocument, pois: POIDocument[] }> {
+  async generateRoute(userId: string, request: ClientRequest): Promise<{ route: IRouteDocument, pois: POIDocument[] }> {
     const themeTypes = await getThemeTypes(request.themeCategories);
 
     const places = await this.placesService.searchNearbyPlaces({
-      coordinates: request.startLocation,
+      startLocation: request.startLocation,
+      endLocation: request.endLocation,
       durationMinutes: request.durationMinutes,
       includedTypes: themeTypes,
     });
@@ -78,15 +78,7 @@ export class RouteGenerator {
 
     const poiDocuments = RouteConverter.convertToPOIDocuments(optimizedRouteState.route.pois);
 
-    const routeId = await this.storeService.saveRoute(userId, routeDocument, poiDocuments);
-
-
-    return {
-      ...computedRoute,
-      routeId,
-      route: routeDocument,
-      pois: poiDocuments,
-    };
+    return await this.storeService.saveRoute(userId, routeDocument, poiDocuments);
   }
 
   private addDistancesToPOIs(pois: POI[], distanceMatrix: DistanceMatrix, startPOI: POI, routeType: RouteType, endPOI?: POI) {

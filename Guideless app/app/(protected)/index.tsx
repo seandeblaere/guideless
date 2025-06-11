@@ -1,46 +1,20 @@
 import { View, Text, StyleSheet, StatusBar, Pressable, Animated, Dimensions, Alert } from 'react-native';
-import { useUser } from '@/stores/authStore';
 import React, { useRef, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCurrentStep, useFormData, useRouteGeneratorActions, useCanProceedToNextStep } from '../../stores/RouteGeneratorStore';
+import { useCurrentStep, useRouteGeneratorActions } from '../../stores/RouteGeneratorStore';
 import { DestinationStep } from '../../components/DestinationStep';
 import { DurationStep } from '../../components/DurationStep';
 import { CategoriesStep } from '../../components/CategorieStep';
 import { useLocationPermissions } from '@/hooks/useLocationPermissions';
-import { useRouteStore } from '@/stores/RouteStore';
-import { useRouter } from 'expo-router';
+import { useRouteActions } from '@/stores/RouteStore';
 
 const { width } = Dimensions.get('window');
 
-const routeData = {
-  pointsOfInterest: [
-    {
-      latitude: 51.204523,
-      longitude: 2.931520,
-      name: 'Waypoint 1 - test',
-    },
-    {
-      latitude: 51.205089,
-      longitude: 2.928714,
-      name: 'Waypoint 2',
-    },
-    {
-      latitude: 51.205304,
-      longitude: 2.936052,
-      name: 'Waypoint 3',
-    },
-  ],
-};
-
 export default function HomeScreen() {
-  const user = useUser();
   const currentStep = useCurrentStep();
-  const { nextStep, previousStep, resetForm } = useRouteGeneratorActions();
-  const canProceedToNextStep = useCanProceedToNextStep();
-  const formData = useFormData();
+  const { nextStep, previousStep, resetForm, canProceedToNextStep } = useRouteGeneratorActions();
   const { hasAllPermissions, requestPermissions } = useLocationPermissions();
-  const { startRouteTracking } = useRouteStore();
-  const router = useRouter();
+  const { startRouteTracking, generateRoute } = useRouteActions();
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -52,7 +26,7 @@ export default function HomeScreen() {
   }, [currentStep]);
 
   const handleNext = () => {
-    if (canProceedToNextStep && currentStep < 3) {
+    if (canProceedToNextStep() && currentStep < 3) {
       nextStep();
     }
   };
@@ -64,8 +38,6 @@ export default function HomeScreen() {
   };
 
   const handleGenerateRoute = async () => {
-    console.log('Generating route...');
-    console.log(formData);
     if (!hasAllPermissions) {
       const granted = await requestPermissions();
       if (!granted) {
@@ -73,16 +45,9 @@ export default function HomeScreen() {
         return;
       }
     }
-
-    const success = await startRouteTracking(routeData);
-    if (success) {
-      console.log('Route tracking started successfully');
-      Alert.alert('Route tracking started successfully');
-      router.push('/maps');
-    } else {
-      console.log('Failed to start route tracking');
-      Alert.alert('Failed to start route tracking');
-    }
+    await generateRoute();
+    resetForm();
+    await startRouteTracking();
   };
 
   const renderStepIndicator = () => (
@@ -101,18 +66,22 @@ export default function HomeScreen() {
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case 1: return 'Destination';
-      case 2: return 'Duration';
-      case 3: return 'Categories';
-      default: return '';
+      case 1:
+        return 'Destination';
+      case 2:
+        return 'Duration';
+      case 3:
+        return 'Categories';
+      default:
+        return '';
     }
   };
 
   return (
     <>
       <StatusBar translucent backgroundColor="#FCFCFC" />
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.container}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+        <View style={[styles.container]}>
           <View style={styles.header}>
             <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.mainTitle]}>
               Create your journey
@@ -159,10 +128,10 @@ export default function HomeScreen() {
               <Pressable
                 style={[
                   styles.nextButton,
-                  !canProceedToNextStep && styles.disabledButton,
+                  !canProceedToNextStep() && styles.disabledButton,
                 ]}
                 onPress={handleNext}
-                disabled={!canProceedToNextStep}
+                disabled={!canProceedToNextStep()}
               >
                 <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.nextButtonText]}>
                   Continue
@@ -172,10 +141,10 @@ export default function HomeScreen() {
               <Pressable
                 style={[
                   styles.generateButton,
-                  !canProceedToNextStep && styles.disabledButton,
+                  !canProceedToNextStep() && styles.disabledButton,
                 ]}
                 onPress={handleGenerateRoute}
-                disabled={!canProceedToNextStep}
+                disabled={!canProceedToNextStep()}
               >
                 <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.generateButtonText]}>
                   Generate Route
@@ -183,12 +152,6 @@ export default function HomeScreen() {
               </Pressable>
             )}
           </View>
-
-          <Pressable style={styles.resetButton} onPress={resetForm}>
-            <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.resetButtonText]}>
-              Start Over
-            </Text>
-          </Pressable>
         </View>
       </SafeAreaView>
     </>
@@ -210,13 +173,17 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#2E3A59',
     marginBottom: 8,
+    textAlign: 'center',
+    paddingHorizontal: 10,
+    minWidth: 250,
   },
   stepTitle: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#5A3A7A',
     marginBottom: 16,
   },
   stepIndicator: {
+    marginTop: 10,
     flexDirection: 'row',
     gap: 8,
   },
@@ -243,7 +210,6 @@ const styles = StyleSheet.create({
   navigationContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 16,
     alignItems: 'center',
   },
   spacer: {

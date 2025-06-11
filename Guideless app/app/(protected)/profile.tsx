@@ -12,7 +12,7 @@ import {
 
 export default function ProfileScreen() {
   const user = useUser();
-  const { updateUserProfile, resendEmailVerification, clearError } = useAuthActions();
+  const { updateUserProfile, resendEmailVerification, clearError, logout } = useAuthActions();
   const isLoading = useIsLoading();
   const error = useError();
 
@@ -96,6 +96,12 @@ export default function ProfileScreen() {
             style={styles.updateButton}
           />
         </View>
+        <Button
+            title="Logout"
+            onPress={logout}
+            loading={isLoading}
+            style={styles.updateButton}
+          />
       </View>
     </ScrollView>
   );

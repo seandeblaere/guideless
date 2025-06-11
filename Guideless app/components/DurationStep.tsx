@@ -34,7 +34,7 @@ export const DurationStep: React.FC = () => {
         <View style={styles.sliderContainer}>
           <CustomSlider
             style={styles.slider}
-            minimumValue={15}
+            minimumValue={30}
             maximumValue={240}
             step={15}
             value={formData.durationMinutes}
@@ -43,7 +43,7 @@ export const DurationStep: React.FC = () => {
           
           <View style={styles.sliderLabels}>
             <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.sliderLabel]}>
-              15 min
+              30 min
             </Text>
             <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.sliderLabel]}>
               4 hours
@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     color: '#2E3A59',
     textAlign: 'center',
     marginBottom: 48,
+    paddingHorizontal: 10,
   },
   durationContainer: {
     alignItems: 'center',
@@ -74,6 +75,8 @@ const styles = StyleSheet.create({
     fontSize: 48,
     color: '#764D9D',
     marginBottom: 32,
+    textAlign: 'center',
+    minWidth: 200,
   },
   sliderContainer: {
     width: '100%',
@@ -86,9 +89,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 8,
+    paddingHorizontal: 5,
   },
   sliderLabel: {
     fontSize: 14,
     color: '#A0A0A0',
+    minWidth: 50,
   },
 });

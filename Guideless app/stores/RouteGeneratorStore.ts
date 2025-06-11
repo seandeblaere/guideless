@@ -18,9 +18,10 @@ interface RouteGeneratorActions {
   resetForm: () => void;
   nextStep: () => void;
   previousStep: () => void;
+  canProceedToNextStep: () => boolean;
 }
 
-interface RouteState {
+interface RouteGeneratorState {
   currentStep: number;
   formData: RouteGeneratorFormData;
   actions: RouteGeneratorActions;
@@ -35,10 +36,9 @@ const initialFormData: RouteGeneratorFormData = {
   categories: [],
 };
 
-const useRouteStore = create<RouteState>((set, get) => ({
+const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
   currentStep: 1,
   formData: initialFormData,
-  
   actions: {
     setDestination: (type: DestinationType, address?: string) =>
       set((state) => {
@@ -98,16 +98,10 @@ const useRouteStore = create<RouteState>((set, get) => ({
         }
         return {};
       }),
-  },
-}));
 
-export const useCurrentStep = () => useRouteStore((state) => state.currentStep);
-export const useFormData = () => useRouteStore((state) => state.formData);
-export const useRouteGeneratorActions = () => useRouteStore((state) => state.actions);
+  canProceedToNextStep: (): boolean => {
+    const { formData, currentStep } = get();
 
-export const useCanProceedToNextStep = () => useRouteStore((state) => {
-    const { formData, currentStep } = state;
-    
     switch (currentStep) {
       case 1:
         if (formData.destination.type !== 'address') {
@@ -119,7 +113,7 @@ export const useCanProceedToNextStep = () => useRouteStore((state) => {
         return false;
       
       case 2:
-        return formData.durationMinutes >= 15;
+        return formData.durationMinutes >= 30;
       
       case 3:
         return formData.categories.length > 0;
@@ -127,4 +121,10 @@ export const useCanProceedToNextStep = () => useRouteStore((state) => {
       default:
         return false;
     }
-  });
+  },
+  },
+}));
+
+export const useCurrentStep = () => useRouteGeneratorStore((state) => state.currentStep);
+export const useFormData = () => useRouteGeneratorStore((state) => state.formData);
+export const useRouteGeneratorActions = () => useRouteGeneratorStore((state) => state.actions);

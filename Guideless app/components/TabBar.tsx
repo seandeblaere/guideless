@@ -5,15 +5,19 @@ import { useState, useEffect } from 'react';
 import { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
 
-export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+interface TabBarProps extends BottomTabBarProps {
+  isKeyboardVisible?: boolean;
+}
+
+export function TabBar({ state, descriptors, navigation, isKeyboardVisible = false }: TabBarProps) {
   const [dimensions, setDimensions] = useState({width: 100, height: 20})
 
   const buttonWidth = dimensions.width / state.routes.length
   const tabPositionX = useSharedValue(0);
 
   useEffect(() => {
-    tabPositionX.value = state.index * buttonWidth;
-  }, [buttonWidth]);
+    tabPositionX.value = withSpring(buttonWidth * state.index, { duration: 1500 });
+  }, [state.index, buttonWidth]);
 
   const onTabBarLayout = (event: LayoutChangeEvent) => {
     setDimensions({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height})
@@ -26,7 +30,13 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   }, []);
 
   return (
-    <View style={styles.tabBar} onLayout={onTabBarLayout}>
+    <View 
+      style={[
+        styles.tabBar, 
+        { display: isKeyboardVisible ? 'none' : 'flex' }
+      ]} 
+      onLayout={onTabBarLayout}
+    >
       <Animated.View style={[styles.indicator, animatedStyle, {
         height: dimensions.height - 15,
         width: buttonWidth - 25
@@ -44,11 +54,6 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           const isFocused = state.index === index;
   
           const onPress = () => {
-            tabPositionX.value = withSpring(index * buttonWidth, {
-              damping: 10,
-              stiffness: 50,
-            });
-
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,

@@ -5,10 +5,6 @@ import {NearbyPlacesRequestData} from "../infrastructure/api/dto/NearbyPlacesReq
 import {DistanceMatrixRequestData, Waypoint, LocationWaypoint} from "../infrastructure/api/dto/DistanceMatrixRequestData";
 import {RouteRequestData, Intermediate} from "../infrastructure/api/dto/RouteRequestData";
 export class ApiRequestBuilder {
-  private coordinates: Coordinates = {
-    latitude: 0,
-    longitude: 0,
-  };
   private durationMinutes = 0;
   private includedTypes: string[] = [];
   private places: IPlace[] = [];
@@ -23,11 +19,6 @@ export class ApiRequestBuilder {
 
   constructor(requestType: "nearbyPlacesRequest" | "distanceMatrixRequest" | "routeRequest") {
     this.requestType = requestType;
-  }
-
-  setCoordinates(coordinates: Coordinates): ApiRequestBuilder {
-    this.coordinates = coordinates;
-    return this;
   }
 
   setDurationMinutes(durationMinutes: number): ApiRequestBuilder {
@@ -96,20 +87,86 @@ export class ApiRequestBuilder {
     return [this.getLocationWaypoint(location), ...this.getWaypoints()];
   }
 
-  private getRadius(): number {
-    return (this.durationMinutes/60) * this.averageWalkingSpeed * 1000;
+  private getSearchArea(): any {
+    // For trips with a separate end location
+    if (this.endLocation && this.endLocation !== this.startLocation) {
+        // Calculate midpoint between start and end
+        const midpoint = {
+            latitude: (this.startLocation.latitude + this.endLocation.latitude) / 2,
+            longitude: (this.startLocation.longitude + this.endLocation.longitude) / 2
+        };
+        
+        // Calculate distance between start and end in meters
+        const startToEndDistance = this.calculateDistance(
+            this.startLocation.latitude, this.startLocation.longitude,
+            this.endLocation.latitude, this.endLocation.longitude
+        );
+
+        const directTravelTime = (startToEndDistance / 1000) / this.averageWalkingSpeed * 60;
+
+        const timeForDetours = this.durationMinutes - directTravelTime;
+
+        let dynamicBuffer;
+        
+        if (timeForDetours <= 0) {
+            dynamicBuffer = 500;
+        } else {
+            dynamicBuffer = Math.min(
+                Math.sqrt(timeForDetours) * 500,
+                startToEndDistance * 0.8,
+                10000
+            );
+        }
+        
+        const radius = (startToEndDistance / 2) + dynamicBuffer;
+        
+        console.log(`Dynamic search radius calculation:
+            - Direct distance: ${(startToEndDistance/1000).toFixed(2)}km
+            - Direct travel time: ${directTravelTime.toFixed(2)} minutes
+            - Available for detours: ${timeForDetours.toFixed(2)} minutes
+            - Dynamic buffer: ${(dynamicBuffer/1000).toFixed(2)}km
+            - Final radius: ${(radius/1000).toFixed(2)}km`);
+        
+        return {
+            circle: {
+                center: midpoint,
+                radius: radius
+            }
+        };
+    } 
+    else {
+        const durationFactor = Math.max(0.2, 0.4 - (this.durationMinutes / 1000));
+        const radius = (this.durationMinutes/60) * this.averageWalkingSpeed * 1000 * durationFactor;
+        
+        console.log(`Round trip search radius: ${(radius/1000).toFixed(2)}km (${durationFactor.toFixed(2)} factor applied)`);
+        
+        return {
+            circle: {
+                center: this.startLocation,
+                radius: radius
+            }
+        };
+    }
+  }
+
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; 
   }
 
   private buildNearbyPlacesRequest(): NearbyPlacesRequestData {
-    const locationRestriction = {
-      circle: {
-        center: this.coordinates,
-        radius: this.getRadius(),
-      },
-    };
-
     return {
-      locationRestriction: locationRestriction,
+      locationRestriction: this.getSearchArea(),
       includedTypes: this.includedTypes,
     };
   }

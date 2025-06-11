@@ -13,7 +13,7 @@ export interface ActiveRouteResponse {
 }
 
 export class StoreService {
-  async saveRoute(userId: string, routeData: IRouteDocument, pois: POIDocument[]): Promise<string> {
+  async saveRoute(userId: string, routeData: IRouteDocument, pois: POIDocument[]): Promise<{ route: IRouteDocument, pois: POIDocument[] }> {
     try {
       const routeRef = db.collection("users").doc(userId).collection("routes").doc();
 
@@ -27,18 +27,14 @@ export class StoreService {
         manuallyCompleted: false,
         destinationReached: false,
         contentGenerationStatus: ContentGenerationStatus.PENDING,
-
-        polyline: routeData.polyline,
-        distanceMeters: routeData.distanceMeters,
-        durationSeconds: routeData.durationSeconds,
-        optimizedIntermediateWaypointIndex: routeData.optimizedIntermediateWaypointIndex,
-        totalPOIs: routeData.totalPOIs,
       };
 
       await routeRef.set(routeDoc);
 
       const batch = db.batch();
       const poisRef = routeRef.collection("pois");
+
+      const storedPOIs: POIDocument[] = [];
 
       pois.forEach((poi, index) => {
         const poiRef = poisRef.doc();
@@ -51,11 +47,15 @@ export class StoreService {
           skipped: false,
         };
         batch.set(poiRef, poiDoc);
+        storedPOIs.push(poiDoc);
       });
 
       await batch.commit();
 
-      return routeRef.id;
+      return {
+        route: routeDoc,
+        pois: storedPOIs,
+      };
     } catch (error) {
       throw new Error("Failed to save route to database with error: " + error);
     }
@@ -81,7 +81,7 @@ export class StoreService {
       }
 
       const routeDoc = routeQuery.docs[0];
-      const routeData = {id: routeDoc.id, ...routeDoc.data()} as IRouteDocument;
+      const routeData = {...routeDoc.data()} as IRouteDocument;
 
       const poisQuery = await routeDoc.ref
         .collection("pois")
@@ -89,7 +89,6 @@ export class StoreService {
         .get();
 
       const pois: POIDocument[] = poisQuery.docs.map((doc) => ({
-        id: doc.id,
         ...doc.data(),
       } as POIDocument));
 
@@ -100,7 +99,6 @@ export class StoreService {
         message: "Active route retrieved successfully",
       };
     } catch (error) {
-      console.error("Error getting active route:", error);
       return {
         success: false,
         route: null,

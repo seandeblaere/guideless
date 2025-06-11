@@ -3,7 +3,7 @@ import {Route} from "../../domain/models/Route";
 import {RouteState} from "../../domain/models/RouteState";
 
 export class LooseEndOptimizer {
-  private static readonly lambda: number = 0.5;
+  private static readonly lambda: number = 0.7;
 
   public static optimize(routeState: RouteState): RouteState {
     return this.insertPOIs(routeState);
@@ -21,6 +21,11 @@ export class LooseEndOptimizer {
 
       for (const poi of currentState.availablePois) {
         for (let i = 1; i <= currentRoute.pois.length; i++) {
+          const insertCost = this.calculateInsertCost(poi, i, currentRoute.pois);
+          if (insertCost > currentState.remainingTime) {
+            continue;
+          }
+
           const netGain = this.calculateNetGain(poi, i, currentRoute);
 
           if (netGain > bestNetGain) {

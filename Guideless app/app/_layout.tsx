@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { useAuthActions, useIsInitialized, useUser } from "@/stores/authStore";
+import { useIsInitialized as useIsRouteInitialized, useRouteActions } from "@/stores/RouteStore";
 import { useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import {
@@ -17,7 +18,8 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import "@/global.css";
 import "@/services/initializeBackgroundTasks";
-import { initializeGeofencing } from "@/services/GeofencingService";
+import { cleanupBackgroundTasks } from "@/services/GeofencingService";
+import { useLocationPermissions } from '@/hooks/useLocationPermissions';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,6 +29,9 @@ export default function RootLayout() {
   const user = useUser();
   const router = useRouter();
   const segments = useSegments();
+  const isRouteInitialized = useIsRouteInitialized();
+  const { initializeRouteStore } = useRouteActions();
+  const { hasAllPermissions, requestPermissions } = useLocationPermissions();
 
   const [playfairLoaded] = usePlayfairFonts({
     PlayfairDisplay_400Regular,
@@ -48,28 +53,36 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    const setupBackgroundTasks = async () => {
-      try {
-        await initializeGeofencing();
-        console.log('🎉 Background tasks initialized');
-      } catch (error) {
-        console.error('❌ Failed to initialize background tasks:', error);
-      }
-    };
-
-    if (isInitialized) {
-      setupBackgroundTasks();
+    if(!isInitialized) {
+      return;
     }
+    const setupBackgroundTasks = async () => {
+      await cleanupBackgroundTasks();
+    };
+    setupBackgroundTasks();
   }, [isInitialized]);
 
   useEffect(() => {
-    if (isInitialized && fontsLoaded) {
-      SplashScreen.hideAsync();
+    if (!isInitialized) {
+      return;
     }
-  }, [isInitialized, fontsLoaded]);
+    initializeRouteStore();
+  }, [isInitialized]);
 
   useEffect(() => {
-    if (!isInitialized) {
+    if (isInitialized && fontsLoaded && isRouteInitialized) {
+      SplashScreen.hideAsync();
+    }
+  }, [isInitialized, fontsLoaded, isRouteInitialized]);
+
+  useEffect(() => {
+    if (!hasAllPermissions) {
+      requestPermissions();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized || !isRouteInitialized || !fontsLoaded) {
       return;
     }
 
@@ -80,7 +93,7 @@ export default function RootLayout() {
     } else if (!user && inProtectedGroup) {
       router.replace("/auth");
     }
-  }, [user, isInitialized]);
+  }, [user, isInitialized, isRouteInitialized, fontsLoaded]);
 
   return (
       <Stack screenOptions={{ headerShown: false,

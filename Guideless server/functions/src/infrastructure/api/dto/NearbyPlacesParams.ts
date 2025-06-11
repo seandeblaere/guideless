@@ -1,7 +1,8 @@
 import {Coordinates} from "../../../shared/types/Coordinates";
 
 export type NearbyPlacesParams = {
-    coordinates: Coordinates;
+    startLocation: Coordinates;
+    endLocation?: Coordinates;
     durationMinutes: number;
     includedTypes: string[];
 }

@@ -19,10 +19,12 @@ export const generateRoute = onCall(async (req) => {
       throw new HttpsError("unauthenticated", "User is not authenticated");
     }
 
-    const routeGenerator = new RouteGenerator();
-    const route = await routeGenerator.generateRoute(userId, req.data);
+    if(!req.data) {
+      throw new HttpsError("invalid-argument", "Missing required parameters");
+    }
 
-    return route;
+    const routeGenerator = new RouteGenerator();
+    return await routeGenerator.generateRoute(userId, req.data);
   } catch (error) {
     return {
       success: false,
@@ -85,6 +87,10 @@ export const generateRouteContent = onDocumentCreated(
     const routeId = event.params.routeId;
 
     if (!routeData || routeData.contentGenerationStatus !== ContentGenerationStatus.PENDING) {
+      return;
+    }
+
+    if (userId === "c8JdXU6xxnZJA9lfcojmV7i6LO52") {
       return;
     }
 

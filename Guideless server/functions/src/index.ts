@@ -99,3 +99,27 @@ export const generateRouteContent = onDocumentCreated(
   }
 );
 
+export const finishRoute = onCall(async (req) => {
+  try {
+    const userId = req.auth?.uid;
+    const {routeId} = req.data;
+
+    if (!userId) {
+      throw new HttpsError("unauthenticated", "User is not authenticated");
+    }
+
+    if (!routeId) {
+      throw new HttpsError("invalid-argument", "Missing required parameters: routeId");
+    }
+
+    const storeService = new StoreService();
+    const result = await storeService.finishRoute(userId, routeId);
+
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      message: `Failed to finish route: ${error}`,
+    };
+  }
+});

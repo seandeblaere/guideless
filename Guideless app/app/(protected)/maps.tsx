@@ -5,6 +5,7 @@ import { decode } from '@googlemaps/polyline-codec';
 import { useRouteStore } from '@/stores/RouteStore';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 export default function MapScreen() {
   const { route, pois, isLoading:isLoadingRoute } = useRouteStore();
@@ -79,13 +80,23 @@ export default function MapScreen() {
 
           {pois.map((poi, index) => (
             <Marker
-              key={poi.placeId}
+              key={index}
               coordinate={{
                 latitude: poi.locationRegion.latitude,
                 longitude: poi.locationRegion.longitude,
               }}
               title={poi.name}
-              pinColor="#E3D7F7"
+              pinColor={poi.visited ? "#8B68B1" : "#E3D7F7"}
+              onPress={() => {
+                if(poi.visited && poi.content) {
+                  router.push({
+                    pathname: '/profile',
+                    params: {
+                      poiId: poi.id,
+                    },
+                  });
+                }
+              }}
             />
           ))}
         </MapView>

@@ -9,13 +9,15 @@ import {
   profileUpdateSchema,
   ProfileUpdateFormData,
 } from '@/validation/validationSchemas';
+import { NotificationService } from '@/services/NotificationService';
+import { usePois } from '@/stores/RouteStore';  
 
 export default function ProfileScreen() {
   const user = useUser();
   const { updateUserProfile, resendEmailVerification, clearError, logout } = useAuthActions();
   const isLoading = useIsLoading();
   const error = useError();
-
+  const pois = usePois();
   const form = useForm<ProfileUpdateFormData>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: {
@@ -95,6 +97,17 @@ export default function ProfileScreen() {
             loading={isLoading}
             style={styles.updateButton}
           />
+          <Button 
+     title="Test Notification" 
+     onPress={async () => {
+       const poi = pois[3];
+       if (poi) {
+         console.log("Testing notification for:", poi.name);
+         const result = await NotificationService.sendPoiNotification(poi);
+         console.log("Notification sent:", result);
+       }
+     }} 
+   />
         </View>
         <Button
             title="Logout"

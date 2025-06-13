@@ -1,22 +1,57 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, StatusBar, ActivityIndicator, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Dimensions, StatusBar, ActivityIndicator, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import { decode } from '@googlemaps/polyline-codec';
-import { useRouteStore } from '@/stores/RouteStore';
+import { usePois, useRoute } from '@/stores/RouteStore';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useRouteActions, useIsTracking, useIsLoadingTracking, useIsGeneratingRoute, useIsClearingRoute } from '@/stores/RouteStore';
 
 export default function MapScreen() {
-  const { route, pois, isLoading:isLoadingRoute } = useRouteStore();
+  const route = useRoute();
+  const pois = usePois();
+  const isGeneratingRoute = useIsGeneratingRoute();
   const { location, isLoading: isLoadingLocation, isLoadingForMapFocus, getCurrentLocation, getLocationForMapFocus } = useCurrentLocation();
   const mapRef = useRef<MapView>(null);
+  const { startRouteTracking, stopRouteTracking, clearRoute } = useRouteActions();
+  const isTracking = useIsTracking();
+  const isRouteTrackingLoading = useIsLoadingTracking();
+  const isClearingRoute = useIsClearingRoute();
+
   const decodedPolyline = route?.polyline ? decode(route.polyline, 5) : null;
 
   useEffect(() => {
     console.log("MapScreen mounted");
     getCurrentLocation();
   }, []);
+
+  const handleFinishRoute = async () => {
+    if(!route) {
+      return;
+    }
+    if(isTracking) {
+      Alert.alert(
+        "Warning",
+        "We are currently tracking your journey. Please stop tracking before finishing it.",
+        [{ text: "OK" }],
+        { cancelable: true }
+      );
+      return;
+    }
+    Alert.alert(
+      "Finish journey",
+      "Are you sure you want to finish this journey?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Finish", onPress: async () => {
+          await clearRoute(); 
+          router.replace("/");
+        }},
+      ],
+      { cancelable: false }
+    );
+  }
 
   const centerOnUserLocation = async () => {
     if (!mapRef.current) return;
@@ -35,7 +70,7 @@ export default function MapScreen() {
       }, 1000);
   };
 
-  if (isLoadingRoute || isLoadingLocation || !location) {
+  if (isGeneratingRoute || isLoadingLocation || !location || isClearingRoute) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <StatusBar translucent backgroundColor="transparent" />
@@ -67,7 +102,7 @@ export default function MapScreen() {
           loadingIndicatorColor="#764D9D"
           loadingBackgroundColor="#FCFCFC"
         >
-          {decodedPolyline && decodedPolyline.length > 0 && (
+          {decodedPolyline && isTracking && decodedPolyline.length > 0 && (
             <Polyline
               coordinates={decodedPolyline.map(([latitude, longitude]) => ({
                 latitude,
@@ -78,7 +113,7 @@ export default function MapScreen() {
             />
           )}
 
-          {pois.map((poi, index) => (
+          {isTracking && pois.map((poi, index) => (
             <Marker
               key={index}
               coordinate={{
@@ -104,11 +139,38 @@ export default function MapScreen() {
         <TouchableOpacity 
           style={styles.myLocationButton} 
           onPress={centerOnUserLocation}
+          disabled={isLoadingForMapFocus}
         >
           {isLoadingForMapFocus ? (
             <ActivityIndicator size="small" color="#764D9D" />
           ) : (
             <MaterialIcons name="my-location" size={28} color="#764D9D" />
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.routeTrackingButton, !route ? styles.disabledButton : {}]} 
+          onPress={isTracking ? stopRouteTracking : startRouteTracking}
+          disabled={isRouteTrackingLoading || !route}
+        >
+          {isRouteTrackingLoading ? (
+            <ActivityIndicator size="small" color="#764D9D" />
+          ) : (
+            isTracking ? (
+              <MaterialIcons name="pause" size={28} color="#764D9D" />
+            ) : (
+              <MaterialIcons name="play-arrow" size={28} color="#764D9D" />
+            )
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.finishRouteButton, isTracking || !route ? styles.disabledButton : {}]} 
+          onPress={handleFinishRoute}
+          disabled={isTracking || !route || isRouteTrackingLoading}
+        >
+          {isClearingRoute ? (
+            <ActivityIndicator size="small" color="#764D9D" />
+          ) : (
+            <MaterialIcons name="check" size={28} color="#764D9D" />
           )}
         </TouchableOpacity>
       </SafeAreaView>
@@ -142,5 +204,35 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-  }
+  },
+  routeTrackingButton: {
+    position: 'absolute',
+    top: 120,
+    right: 20,
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  finishRouteButton: {
+    position: 'absolute',
+    top: 180,
+    right: 20,
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  disabledButton: {
+    opacity: 0.5,
+    backgroundColor: '#F5F5F5',
+  },
 });

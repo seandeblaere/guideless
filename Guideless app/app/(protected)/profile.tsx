@@ -10,7 +10,8 @@ import {
   ProfileUpdateFormData,
 } from '@/validation/validationSchemas';
 import { NotificationService } from '@/services/NotificationService';
-import { usePois } from '@/stores/RouteStore';  
+import { usePois } from '@/stores/RouteStore';
+import { handleEnter } from '@/services/GeofencingService';
 
 export default function ProfileScreen() {
   const user = useUser();
@@ -100,10 +101,10 @@ export default function ProfileScreen() {
           <Button 
      title="Test Notification" 
      onPress={async () => {
-       const poi = pois[3];
+       const poi = pois[1];
        if (poi) {
          console.log("Testing notification for:", poi.name);
-         const result = await NotificationService.sendPoiNotification(poi);
+         const result = await handleEnter(poi.locationRegion!);
          console.log("Notification sent:", result);
        }
      }} 

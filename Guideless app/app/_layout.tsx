@@ -140,7 +140,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false,
      }}>
       <Stack.Screen name="(protected)" options={{ headerShown: false, animation: 'none',
-        navigationBarColor: '#F9FAFB',
+        navigationBarColor: '#764D9D',
        }} />
       <Stack.Screen name="auth" options={{ headerShown: false, animation: 'none',
         navigationBarColor: '#E3D7F7'

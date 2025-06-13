@@ -1,4 +1,4 @@
-import {onCall, HttpsError, onRequest} from "firebase-functions/v2/https";
+import {onCall, HttpsError} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import {RouteGenerator} from "./application/route-generation/RouteGenerator";
 import {onDocumentCreated} from "firebase-functions/firestore";
@@ -11,26 +11,26 @@ import {StoreService} from "./infrastructure/firebase/StoreService";
 admin.initializeApp();
 export const db = admin.firestore();
 
-export const generateRoute = onRequest(async (req, res) => {
+export const generateRoute = onCall(async (req) => {
   try {
-    const userId = "test-user-123";
+    const userId = req.auth?.uid;
 
     if (!userId) {
       throw new HttpsError("unauthenticated", "User is not authenticated");
     }
 
-    if(!req.body) {
+    if(!req.data) {
       throw new HttpsError("invalid-argument", "Missing required parameters");
     }
 
     const routeGenerator = new RouteGenerator();
-    const result = await routeGenerator.generateRoute(userId, req.body);
-    res.status(200).json(result);
+    const result = await routeGenerator.generateRoute(userId, req.data);
+    return result;
   } catch (error) {
-    res.status(500).json({
+    return {
       success: false,
       message: "Failed to generate route: " + error,
-    });
+    };
   }
 });
 
@@ -88,10 +88,6 @@ export const generateRouteContent = onDocumentCreated(
     const routeId = event.params.routeId;
 
     if (!routeData || routeData.contentGenerationStatus !== ContentGenerationStatus.PENDING) {
-      return;
-    }
-
-    if (userId === "c8JdXU6xxnZJA9lfcojmV7i6LO52" || userId === "test-user-123") {
       return;
     }
 

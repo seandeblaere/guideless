@@ -5,7 +5,7 @@ import { useCurrentStep, useRouteGeneratorActions, useCanProceedToNextStep, useF
 import { DestinationStep } from '../../components/DestinationStep';
 import { DurationStep } from '../../components/DurationStep';
 import { CategoriesStep } from '../../components/CategorieStep';
-import { useRouteActions, useIsGeofencingActive, useIsTracking } from '@/stores/RouteStore';
+import { useRouteActions, useHasActiveRoute, useRouteStore } from '@/stores/RouteStore';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { router } from 'expo-router';
 
@@ -14,14 +14,13 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const currentStep = useCurrentStep();
   const { nextStep, previousStep, resetForm } = useRouteGeneratorActions();
-  const { startRouteTracking, generateRoute } = useRouteActions();
+  const { generateRoute, clearRoute } = useRouteActions();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const canProceedToNextStep = useCanProceedToNextStep();
   const formData = useFormData();
   const { getCurrentLocation } = useCurrentLocation();
-  const isTracking = useIsTracking();
-  const isGeofencingActive = useIsGeofencingActive();
   const [isGeneratingRoute, setIsGeneratingRoute] = useState(false);
+  const hasActiveRoute = useHasActiveRoute();
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -43,6 +42,30 @@ export default function HomeScreen() {
     }
   };
 
+  const canProceed = async (): Promise<boolean> => {
+    let canProceed = true;
+    if(!hasActiveRoute) {
+      return canProceed;
+    }
+    Alert.alert(
+      "Active route detected",
+      "You still have an active route. Do you want to generate a new one?",
+      [
+        {
+          text: "Yes",
+          onPress: () => canProceed = false,
+        },
+        {
+          text: "No",
+          onPress: () => canProceed = false,
+          style: 'cancel'
+        }
+      ],
+      { cancelable: false }
+    );  
+    return canProceed;
+  };
+
   const handleGenerateRoute = async () => {
     setIsGeneratingRoute(true);
     try {
@@ -53,14 +76,14 @@ export default function HomeScreen() {
         return;
       }
 
-      await generateRoute(formData, location);
-      await startRouteTracking();
-
-      if (isGeofencingActive && isTracking) {
-        console.log("Geofencing active and tracking, pushing to maps");
-        resetForm();
-        router.push('/maps');
+      const canProceedToGenerate = await canProceed();
+      if(!canProceedToGenerate) {
+        return;
       }
+      hasActiveRoute && clearRoute();
+      await generateRoute(formData, location);
+      resetForm();
+      router.push('/maps');
     } catch (error) {
       Alert.alert('Error', 'Failed to generate route: ' + error);
     } finally {
@@ -90,8 +113,6 @@ export default function HomeScreen() {
         return 'Duration';
       case 3:
         return 'Categories';
-      default:
-        return '';
     }
   };
 

@@ -19,6 +19,7 @@ export class NotificationService {
   private static notificationSubscription: Notifications.EventSubscription | null = null;
 
   static async initialize(): Promise<boolean> {
+    this.cleanup();
     console.log("Initializing notification service...");
     try {
       if (Device.isDevice) {
@@ -49,7 +50,7 @@ export class NotificationService {
       console.log("Setting notification response received listener");
       this.notificationSubscription = Notifications.addNotificationResponseReceivedListener(response => {
         const poiId = response.notification.request.content.data?.poiId;
-        if (poiId) {
+        if (poiId && poiId !== 'end_location') {
           router.push({
             pathname: '/maps',
             params: { poiId: poiId as string }
@@ -66,7 +67,6 @@ export class NotificationService {
   }
   
   static async hasBeenNotifiedForPoi(poiId: string): Promise<boolean> {
-    console.log("Checking if POI has been notified: ", poiId);
     try {
       const notifiedPois = await this.getNotifiedPois();
       return notifiedPois.includes(poiId);
@@ -114,8 +114,8 @@ export class NotificationService {
       console.log("Notifying end location...");
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: `You've reached your destination`,
-          body: 'Route tracking will be stopped automatically',
+          title: `Destination reached`,
+          body: 'You have reached your destination, but not all points of interest have been visited. You can continue exploring or finish your journey.',
           data: { poiId: 'end_location' },
           color: '#764D9D',
           priority: Notifications.AndroidNotificationPriority.HIGH,
@@ -126,6 +126,57 @@ export class NotificationService {
       return true;
     } catch (error) {
       console.log("Error sending end location notification: ", error);
+      return false;
+    }
+  }
+
+  static async sendRouteCompletedNotification(isPOI: boolean): Promise<boolean> {
+    console.log("Sending route completed notification: ");
+    try {
+      const hasBeenNotified = await this.hasBeenNotifiedForPoi('route_completed');
+      console.log("Has been notified: ", hasBeenNotified);
+      if (hasBeenNotified) {
+        return false;
+      }
+      console.log("Notifying route completed...");
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `Journey completed`,
+          body: 'Congratulations! You have completed your journey! Route tracking will be stopped automatically.',
+          data: { poiId: 'route_completed' },
+          color: '#764D9D',
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: isPOI ?{
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 30,
+        } : null,
+      });
+      await this.addNotifiedPoi('route_completed');
+      return true;
+    } catch (error) {
+      console.log("Error sending route completed notification: ", error);
+      return false;
+    }
+  }
+
+  static async sendNoContentNotification(): Promise<boolean> {
+    console.log("Sending no content notification: ");
+    try {
+      console.log("Notifying no content...");
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `Region entered`,
+          body: 'You have entered a region, but there was no server response for this area. Please check back later to see if content is available.',
+          data: { poiId: 'no_content' },
+          color: '#764D9D',
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: null,
+      });
+      return true;
+    } catch (error) {
+      console.log("Error sending no content notification: ", error);
       return false;
     }
   }

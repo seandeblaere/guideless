@@ -45,6 +45,7 @@ export class StoreService {
           visited: false,
           contentReady: false,
           skipped: false,
+          locationRegion: {...poi.locationRegion, identifier: poiRef.id},
         };
         batch.set(poiRef, poiDoc);
         storedPOIs.push(poiDoc);

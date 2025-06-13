@@ -1,5 +1,5 @@
 export type GeofenceLocationRegion = {
-    identifier: string;
+    identifier: string | null;
     latitude: number;
     longitude: number;
     radius: number;

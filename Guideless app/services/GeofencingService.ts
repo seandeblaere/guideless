@@ -1,7 +1,7 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import { GeofencingEventType, LocationRegion } from 'expo-location';
-import { Coordinates, POI, useRouteStore } from '@/stores/RouteStore';
+import { Coordinates, POI, RouteType, useRouteStore } from '@/stores/RouteStore';
 import { NotificationService } from '@/services/NotificationService';
 
 const GEOFENCING_TASK_NAME = 'background-geofencing-task';
@@ -21,19 +21,33 @@ TaskManager.defineTask(GEOFENCING_TASK_NAME, async ({ data: { eventType, region 
 
 async function handleEnter(region: LocationRegion): Promise<void> {
     console.log("Entered:", region.identifier);
+    const route = useRouteStore.getState().route;
+    const roundTripTriggerFlag = useRouteStore.getState().roundTripTriggerFlag;
+    if(!route) {
+      return;
+    }
     if(!region.identifier) {
       return;
     }
-    if(region.identifier === 'end_location') {
-      // TODO: Finish route
+    if(region.identifier === 'end_location' && route.routeType === RouteType.DESTINATION) {
+      await NotificationService.sendEndLocationNotification();
       return;
     }
-    const poi = await useRouteStore.getState().actions.visitPOI(region.identifier);
+    const result = await useRouteStore.getState().actions.visitPOI(region.identifier);
+    if(!result) {
+      return;
+    }
+    const {poi, routeProgress} = result;
     if(!poi) {
       return;
     }
-    console.log("Sending POI to the notification service");
     await NotificationService.sendPoiNotification(poi);
+    if(routeProgress && routeProgress.routeCompleted && route.routeType === RouteType.ANYWHERE) {
+      // TODO: handle route completion without destination (all poi visited and last poi is the random end location)
+    }
+    if(routeProgress && routeProgress.routeCompleted && route.routeType === RouteType.ROUND_TRIP) {
+      // TODO: handle all pois visited with round trip (all pois visited but still has to return to start so no need to finish route but send update to the user)
+    }
 }
 
 export async function cleanupBackgroundTasks(): Promise<void> {

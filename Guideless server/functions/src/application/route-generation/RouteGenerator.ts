@@ -14,6 +14,7 @@ import {StoreService} from "../../infrastructure/firebase/StoreService";
 import {RouteConverter} from "../converters/RouteConverter";
 import {POIDocument} from "../../domain/interfaces/IPOIDocument";
 import {IRouteDocument} from "../../domain/interfaces/IRouteDocument";
+import { Coordinates } from "../../shared/types/Coordinates";
 
 export class RouteGenerator {
   private placesService: PlacesService;
@@ -33,9 +34,13 @@ export class RouteGenerator {
   async generateRoute(userId: string, request: ClientRequest): Promise<{ route: IRouteDocument, pois: POIDocument[] }> {
     const themeTypes = await getThemeTypes(request.themeCategories);
 
+    console.log("Theme types: ", themeTypes);
+
+    const endLocation = await this.placesService.getGeocode(request.endLocation);
+
     const places = await this.placesService.searchNearbyPlaces({
       startLocation: request.startLocation,
-      endLocation: request.endLocation,
+      endLocation: endLocation,
       durationMinutes: request.durationMinutes,
       includedTypes: themeTypes,
     });
@@ -44,7 +49,7 @@ export class RouteGenerator {
       throw new Error("No places found");
     }
 
-    const distanceMatrix = await this.distanceMatrixService.calculateDistanceMatrix(places, request.startLocation, request.endLocation);
+    const distanceMatrix = await this.distanceMatrixService.calculateDistanceMatrix(places, request.startLocation, endLocation);
 
     if (!distanceMatrix.has("start_location")) {
       throw new Error("Start location not found in distance matrix");
@@ -62,11 +67,11 @@ export class RouteGenerator {
 
     const startPOI = POI.createStartPOI(request.startLocation);
 
-    const endPOI = (routeType === RouteType.ANYWHERE) ? undefined : POI.createEndPOI(request.endLocation);
+    const endPOI = (routeType === RouteType.ANYWHERE) ? undefined : POI.createEndPOI(endLocation);
 
     this.addDistancesToPOIs(pois, distanceMatrix, startPOI, routeType, endPOI);
 
-    const route = this.buildRoute(request, routeType, startPOI, endPOI);
+    const route = this.buildRoute(request, routeType, startPOI, endPOI, endLocation);
 
     const routeState = await RouteState.initialize(route, pois);
 
@@ -135,10 +140,10 @@ export class RouteGenerator {
     }
   }
 
-  private buildRoute(request: ClientRequest, routeType: RouteType, startPOI: POI, endPOI?: POI): Route {
+  private buildRoute(request: ClientRequest, routeType: RouteType, startPOI: POI, endPOI?: POI, endLocation?: Coordinates): Route {
     const route = this.routeBuilder
       .withStartLocation(request.startLocation)
-      .withEndLocation(request.endLocation)
+      .withEndLocation(endLocation)
       .withDuration(request.durationMinutes)
       .withThemeCategories(request.themeCategories)
       .withMaxPOIs(request.maxPOICount)

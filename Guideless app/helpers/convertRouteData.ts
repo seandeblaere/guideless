@@ -1,8 +1,15 @@
 import { RouteGeneratorFormData } from "@/stores/RouteGeneratorStore";
-import { Route, POI, Coordinates } from "@/stores/RouteStore";
+import { Route, POI, Coordinates, RouteProgress } from "@/stores/RouteStore";
 
 
-export function getRouteStateFromRoute(route: any) {
+export function getRouteStateFromRoute(route: any, routeProgress?: RouteProgress) {
+    const noProgress: RouteProgress = {
+      visitedPOIs: 0,
+      totalPOIs: 0,
+      completionPercentage: 0,
+      routeCompleted: false,
+    };
+
     const routeState: Route = {
       id: route.id,
       routeType: route.routeType,
@@ -19,6 +26,8 @@ export function getRouteStateFromRoute(route: any) {
       visitedPOIs: route.visitedPOIs,
       manuallyCompleted: route.manuallyCompleted,
       destinationReached: route.destinationReached,
+
+      routeProgress: routeProgress ?? noProgress,
     };
 
     return routeState;

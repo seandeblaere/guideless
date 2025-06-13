@@ -3,7 +3,7 @@ import {ThemeCategory} from "../../../shared/types/ThemeCategory";
 
 export type ClientRequest = {
     startLocation: Coordinates;
-    endLocation?: Coordinates;
+    endLocation?: string;
     isRoundTrip: boolean;
     toAnywhere: boolean;
     durationMinutes: number;

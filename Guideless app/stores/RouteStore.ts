@@ -30,7 +30,7 @@ enum ContentType {
   DESCRIPTION = "description"
 }
 
-enum RouteType {
+export enum RouteType {
   ROUND_TRIP = "round_trip",
   DESTINATION = "destination",
   ANYWHERE = "anywhere"
@@ -39,6 +39,13 @@ enum RouteType {
 interface POIContent {
   contentTypes: ContentType[];
   content: string | null;
+}
+
+export interface RouteProgress {
+  visitedPOIs: number;
+  totalPOIs: number;
+  completionPercentage: number;
+  routeCompleted: boolean;
 }
 
 export interface POI {
@@ -72,9 +79,12 @@ export interface Route {
   visitedPOIs: number;
   manuallyCompleted: boolean;
   destinationReached: boolean;
+
+  routeProgress?: RouteProgress;
 }
 
 interface RouteState {
+  roundTripTriggerFlag: boolean;
   hasActiveRoute: boolean;
   isInitialized: boolean;
   isTracking: boolean;
@@ -89,13 +99,14 @@ interface RouteState {
     startRouteTracking: () => Promise<void>;
     initializeRouteStore: () => Promise<void>;
     generateRoute: (formData: RouteGeneratorFormData, currentLocation: Coordinates) => Promise<void>;
-    visitPOI: (regionIdentifier: string) => Promise<POI | null>;
+    visitPOI: (regionIdentifier: string) => Promise<{poi: POI, routeProgress: RouteProgress} | null>;
     setIsInitialized: (isInitialized: boolean) => void; 
     clearRoute: () => Promise<void>;
   };
 }
 
 export const useRouteStore = create<RouteState>((set, get) => ({
+  roundTripTriggerFlag: false,
   hasActiveRoute: false,
   isInitialized: false,
   isTracking: false,
@@ -139,24 +150,33 @@ export const useRouteStore = create<RouteState>((set, get) => ({
         return null;
       }
       console.log("New POI data retrieved successfully");
+      const routeProgress = poiData.routeProgress as RouteProgress;
       const poiState = getPOIStateFromPOIData(poiData.poi);
+      const newRouteState = getRouteStateFromRoute(route, routeProgress);
       const newPois = pois.map((p) => p.id === regionIdentifier ? poiState : p);
       console.log("New POIs: ", newPois);
       await AsyncStorage.setItem(ROUTE_POIS_KEY, JSON.stringify(newPois));
-      set({ pois: newPois });
+      await AsyncStorage.setItem(ROUTE_KEY, JSON.stringify(newRouteState));
+      set({ pois: newPois, route: newRouteState });
       set({ isLoading: false });
-      return poiState;
+      return {poi: poiState, routeProgress: poiData.routeProgress as RouteProgress};
     },
     generateRoute: async (formData: RouteGeneratorFormData, currentLocation: Coordinates) => {
       set({ isLoading: true });
       const routeRequest = getRouteRequestFromFormData(formData, currentLocation); 
-      const result = await generateRoute(routeRequest);
+      console.log("Route request: ", routeRequest);
+      try {
+        const result = await generateRoute(routeRequest);
       if (!result) {
         set({ isLoading: false });
         return;
       }
       const routeData = result.data as any;
       if (!routeData) {
+        set({ isLoading: false });
+        return;
+      }
+      if (routeData.success === false || !routeData.route || !routeData.pois) {
         set({ isLoading: false });
         return;
       }
@@ -167,6 +187,11 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       await AsyncStorage.setItem(ROUTE_KEY, JSON.stringify(routeState));
       await AsyncStorage.setItem(ROUTE_POIS_KEY, JSON.stringify(pois));
       set({ isLoading: false });
+      } catch (error) {
+        console.log("Failed to generate route: ", error);
+        set({ isLoading: false });
+        return;
+      }
     },
 
     startRouteTracking: async (): Promise<void> => {
@@ -214,17 +239,23 @@ export const useRouteStore = create<RouteState>((set, get) => ({
     console.log("No stored route and pois found");
     console.log("Getting active route from server");
 
+   try {
     const result = await getActiveRoute();
-    
+
+    if (!result) {
+      throw new Error("No result from getActiveRoute");
+    }
+
     const routeData = result.data as any;
 
     if (!routeData.success) {
-      console.log("Failed to get active route from server");
+      console.log("No active route from server found");
       set({ isInitialized: true });
       return;
     }
 
     if(!routeData.route || !routeData.pois) {
+      console.log("No route or pois found in retrieved data from server");
       set({ isInitialized: true });
       return;
     }
@@ -233,14 +264,22 @@ export const useRouteStore = create<RouteState>((set, get) => ({
     const pois = routeData.pois.map((poi: any) => getPOIStateFromPOIData(poi));
 
     console.log("Route retrieved from server");
+    console.log("Setting route and pois in async storage");
 
     await AsyncStorage.setItem(ROUTE_KEY, JSON.stringify(routeState));
     await AsyncStorage.setItem(ROUTE_POIS_KEY, JSON.stringify(pois));
+    console.log("Route and pois set in store");
+    console.log("Setting route and pois in state store");
     set({ route: routeState, pois: pois, hasActiveRoute: true, isInitialized: true });
+  }
+    catch (error) {
+      console.log("Failed to get active route from server: ", error);
+      set({ isInitialized: true });
+      return;
+     }
   },
   clearRoute: async () => {
     console.log("Clearing route");
-    await clearStorage();
     set({ isLoading: true });
     const { route } = get();
     if (!route) {
@@ -249,8 +288,7 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       return;
     }
     try {
-    const result = await finishRoute({routeId: route.id});
-    console.log("result: ", result);
+    await finishRoute({routeId: route.id});
     } catch (error) {
       console.log("Failed to finish route in server: ", error);
     }

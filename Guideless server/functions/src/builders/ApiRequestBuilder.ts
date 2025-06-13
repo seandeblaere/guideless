@@ -88,15 +88,14 @@ export class ApiRequestBuilder {
   }
 
   private getSearchArea(): any {
-    // For trips with a separate end location
+    const MIN_RADIUS = 2000;
+
     if (this.endLocation && this.endLocation !== this.startLocation) {
-        // Calculate midpoint between start and end
         const midpoint = {
             latitude: (this.startLocation.latitude + this.endLocation.latitude) / 2,
             longitude: (this.startLocation.longitude + this.endLocation.longitude) / 2
         };
         
-        // Calculate distance between start and end in meters
         const startToEndDistance = this.calculateDistance(
             this.startLocation.latitude, this.startLocation.longitude,
             this.endLocation.latitude, this.endLocation.longitude
@@ -118,7 +117,7 @@ export class ApiRequestBuilder {
             );
         }
         
-        const radius = (startToEndDistance / 2) + dynamicBuffer;
+        const radius = Math.max((startToEndDistance / 2) + dynamicBuffer, MIN_RADIUS);
         
         console.log(`Dynamic search radius calculation:
             - Direct distance: ${(startToEndDistance/1000).toFixed(2)}km
@@ -136,7 +135,10 @@ export class ApiRequestBuilder {
     } 
     else {
         const durationFactor = Math.max(0.2, 0.4 - (this.durationMinutes / 1000));
-        const radius = (this.durationMinutes/60) * this.averageWalkingSpeed * 1000 * durationFactor;
+        const radius = Math.max(
+            (this.durationMinutes/60) * this.averageWalkingSpeed * 1000 * durationFactor,
+            MIN_RADIUS
+        );
         
         console.log(`Round trip search radius: ${(radius/1000).toFixed(2)}km (${durationFactor.toFixed(2)} factor applied)`);
         

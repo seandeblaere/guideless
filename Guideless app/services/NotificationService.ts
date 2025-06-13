@@ -96,14 +96,40 @@ export class NotificationService {
       });
       console.log("POI notification sent");
       await this.addNotifiedPoi(poi.id);
-      console.log("Notified POI added to storage");
       return true;
     } catch (error) {
       console.log("Error sending POI notification: ", error);
       return false;
     }
   }
-  
+
+  static async sendEndLocationNotification(): Promise<boolean> {
+    console.log("Sending end location notification: ");
+    try {
+      const hasBeenNotified = await this.hasBeenNotifiedForPoi('end_location');
+      console.log("Has been notified: ", hasBeenNotified);
+      if (hasBeenNotified) {
+        return false;
+      }
+      console.log("Notifying end location...");
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `You've reached your destination`,
+          body: 'Route tracking will be stopped automatically',
+          data: { poiId: 'end_location' },
+          color: '#764D9D',
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: null,
+      });
+      await this.addNotifiedPoi('end_location');
+      return true;
+    } catch (error) {
+      console.log("Error sending end location notification: ", error);
+      return false;
+    }
+  }
+
   static async getNotifiedPois(): Promise<string[]> {
     console.log("Getting notified POIs");
     try {

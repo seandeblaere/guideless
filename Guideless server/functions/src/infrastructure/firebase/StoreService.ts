@@ -111,7 +111,11 @@ export class StoreService {
   async finishRoute(userId: string, routeId: string): Promise<{ success: boolean, message: string }> {
     try {
       const routeRef = db.collection("users").doc(userId).collection("routes").doc(routeId);
-      await routeRef.update({ status: RouteStatus.COMPLETED });
+      const doc = await routeRef.get();
+      if (!doc.exists) {
+        return { success: false, message: "Route not found" };
+      }
+      await routeRef.update({ status: RouteStatus.COMPLETED});
       return { success: true, message: "Route finished successfully" };
     } catch (error) {
       throw new Error("Failed to finish route with error: " + error);

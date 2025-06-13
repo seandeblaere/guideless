@@ -48,20 +48,23 @@ export class NotificationService {
         enableVibrate: true,
       });
       console.log("Setting notification response received listener");
+
+      const lastResponse = await Notifications.getLastNotificationResponseAsync();
+      if (lastResponse) {
+        console.log("App launched from notification:", lastResponse);
+        this.handleNotificationResponse(lastResponse);
+      }
+
       this.notificationSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-        const poiId = response.notification.request.content.data?.poiId;
-        if (poiId && poiId !== 'end_location') {
-          router.push({
-            pathname: '/maps',
-            params: { poiId: poiId as string }
-          });
-        }
+        console.log("Notification response received while app running:", response);
+        this.handleNotificationResponse(response);
       });
+
       console.log("Notification channel set");
       console.log("Notification service initialized");
       return true;
     } catch (error) {
-      console.log("Error initializing notification service: ", error);
+      console.error("Failed to initialize notifications:", error);
       return false;
     }
   }
@@ -208,6 +211,16 @@ export class NotificationService {
     if (this.notificationSubscription) {
       this.notificationSubscription.remove();
       this.notificationSubscription = null;
+    }
+  }
+
+  private static handleNotificationResponse(response: Notifications.NotificationResponse) {
+    const poiId = response.notification.request.content.data?.poiId;
+    if (poiId && poiId !== 'end_location') {
+      router.push({
+        pathname: '/maps',
+        params: { poiId: poiId as string }
+      });
     }
   }
 }

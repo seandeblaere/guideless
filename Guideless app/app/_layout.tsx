@@ -20,7 +20,7 @@ import "@/global.css";
 import "@/services/initializeBackgroundTasks";
 import { cleanupBackgroundTasks } from "@/services/GeofencingService";
 import { NotificationService } from "@/services/NotificationService";
-import { Alert } from "react-native";
+import { Alert, AppState } from "react-native";
 import * as Notifications from 'expo-notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -96,25 +96,39 @@ export default function RootLayout() {
     if(!isInitialized || !isRouteInitialized || !fontsLoaded) {
       return;
     }
+
     const setupBackgroundTasks = async () => {
       await cleanupBackgroundTasks();
       const notificationsInitialized = await NotificationService.initialize();
-    if (!notificationsInitialized) {
-      Alert.alert("Failed to initialize notifications service. Please make sure to turn on notifications in the settings.");
-    }
-    const response = await Notifications.getLastNotificationResponseAsync();
-    if (response && user && hasActiveRoute) {
-      const poiId = response.notification.request.content.data?.poiId;
-      if (poiId && pois.find((poi) => poi.id === poiId)) {
-        router.replace({
-          pathname: '/maps',
-          params: { poiId: poiId as string }
-        });
+      if (!notificationsInitialized) {
+        Alert.alert("Failed to initialize notifications service. Please make sure to turn on notifications in the settings.");
       }
-    }
     };
+
     setupBackgroundTasks();
-  }, [isInitialized, isRouteInitialized, fontsLoaded, hasActiveRoute]);
+  }, [isInitialized, isRouteInitialized, fontsLoaded]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (nextAppState === 'active') {
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (response && user && hasActiveRoute) {
+          console.log("Notification response will be handled");
+          const poiId = response.notification.request.content.data?.poiId;
+          if (poiId && pois.find((poi) => poi.id === poiId)) {
+            router.replace({
+              pathname: '/maps',
+              params: { poiId: poiId as string }
+            });
+          }
+        }
+      }
+    });
+  
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (isInitialized && fontsLoaded && isRouteInitialized) {

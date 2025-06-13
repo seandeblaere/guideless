@@ -101,7 +101,7 @@ export default function ProfileScreen() {
           <Button 
      title="Test Notification" 
      onPress={async () => {
-       const poi = pois[1];
+       const poi = pois[5];
        if (poi) {
          console.log("Testing notification for:", poi.name);
          const result = await handleEnter(poi.locationRegion!);

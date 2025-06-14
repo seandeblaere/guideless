@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useFormData, useRouteGeneratorActions } from '../stores/RouteGeneratorStore';
-import { CustomSlider } from './CustomSlider';
+import { CustomSlider, SLIDER_WIDTH } from './CustomSlider';
 
 export const DurationStep: React.FC = () => {
   const formData = useFormData();
@@ -22,12 +22,8 @@ export const DurationStep: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.title]}>
-        How long should your journey be?
-      </Text>
-      
       <View style={styles.durationContainer}>
-        <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.durationText]}>
+        <Text style={styles.durationText}>
           {formatDuration(formData.durationMinutes)}
         </Text>
         
@@ -42,10 +38,10 @@ export const DurationStep: React.FC = () => {
           />
           
           <View style={styles.sliderLabels}>
-            <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.sliderLabel]}>
+            <Text style={[styles.sliderLabel, styles.leftLabel]}>
               30 min
             </Text>
-            <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.sliderLabel]}>
+            <Text style={styles.sliderLabel}>
               4 hours
             </Text>
           </View>
@@ -58,42 +54,42 @@ export const DurationStep: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    width: '100%',
     justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    color: '#2E3A59',
-    textAlign: 'center',
-    marginBottom: 48,
-    paddingHorizontal: 10,
+    alignItems: 'center',
   },
   durationContainer: {
+    width: '100%',
     alignItems: 'center',
   },
   durationText: {
-    fontSize: 48,
-    color: '#764D9D',
+    fontFamily: 'DMSans-Bold',
+    fontSize: 36,
+    color: '#2F7EA1',
     marginBottom: 32,
     textAlign: 'center',
-    minWidth: 200,
   },
   sliderContainer: {
     width: '100%',
+    alignItems: 'center',
     paddingHorizontal: 20,
   },
   slider: {
-    width: '100%',
+    alignSelf: 'center',
   },
   sliderLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    width: SLIDER_WIDTH,
     marginTop: 8,
-    paddingHorizontal: 5,
+    alignSelf: 'center',
   },
   sliderLabel: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 14,
-    color: '#A0A0A0',
-    minWidth: 50,
+    color: '#F3AEBF',
   },
+  leftLabel: {
+    color: '#C1ACDF',
+  }
 });

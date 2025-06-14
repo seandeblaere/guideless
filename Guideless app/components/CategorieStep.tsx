@@ -8,22 +8,14 @@ export const CategoriesStep: React.FC = () => {
   const { toggleCategory } = useRouteGeneratorActions();
 
   const categories = [
-    { id: 'culture', label: 'Culture', icon: '🎭' },
-    { id: 'history', label: 'History', icon: '🏛️' },
-    { id: 'nature', label: 'Nature', icon: '🌿' },
-    { id: 'food', label: 'Food', icon: '🍽️' },
+    { id: 'culture', label: 'Culture' },
+    { id: 'history', label: 'History' },
+    { id: 'nature', label: 'Nature' },
+    { id: 'food', label: 'Food' },
   ];
 
   return (
     <View style={styles.container}>
-      <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.title]}>
-        What interests you?
-      </Text>
-      
-      <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.subtitle]}>
-        Select one or more categories
-      </Text>
-      
       <View style={styles.categoriesContainer}>
         {categories.map((category) => {
           const isSelected = formData.categories.includes(category.id);
@@ -33,8 +25,8 @@ export const CategoriesStep: React.FC = () => {
               <LinearGradient
                 colors={
                   isSelected
-                    ? ['#764D9D', '#5A3A7A', '#764D9D']
-                    : ['#E0F7FC', '#F0E8FA', '#FFE9EF']
+                  ? ['#A988CD', '#ED97AB']
+                  : ['#F0E8FA', '#FFE9EF']
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -44,17 +36,13 @@ export const CategoriesStep: React.FC = () => {
                   style={styles.button}
                   onPress={() => toggleCategory(category.id)}
                 >
-                  <Text style={styles.categoryIcon}>{category.icon}</Text>
                   <Text style={[
-                    { fontFamily: 'DMSans_400Regular' },
+                    { fontFamily: 'DMSans-Regular' },
                     styles.buttonText,
                     isSelected && styles.selectedButtonText,
                   ]}>
                     {category.label}
                   </Text>
-                  {isSelected && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
                 </Pressable>
               </LinearGradient>
             </View>
@@ -68,22 +56,13 @@ export const CategoriesStep: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 24,
-    color: '#2E3A59',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#5A3A7A',
-    textAlign: 'center',
-    marginBottom: 32,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoriesContainer: {
-    gap: 16,
+    width: '100%',
+    gap: 20,
   },
   buttonShadow: {
     elevation: 2,
@@ -110,11 +89,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  categoryIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
   buttonText: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 18,
     color: '#2E3A59',
     flex: 1,
@@ -122,11 +98,5 @@ const styles = StyleSheet.create({
   },
   selectedButtonText: {
     color: '#FCFCFC',
-    fontFamily: 'DMSans_700Bold',
-  },
-  checkmark: {
-    fontSize: 20,
-    color: '#FCFCFC',
-    marginLeft: 12,
   },
 });

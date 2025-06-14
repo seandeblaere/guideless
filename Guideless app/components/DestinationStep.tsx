@@ -1,71 +1,57 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
-import { useFormData, useRouteGeneratorActions, DestinationType } from '../stores/RouteGeneratorStore';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFormData, useRouteGeneratorActions } from '../stores/RouteGeneratorStore';
 
 export const DestinationStep: React.FC = () => {
   const formData = useFormData();
   const { setDestination } = useRouteGeneratorActions();
 
-  const handleDestinationTypeSelect = (type: DestinationType) => {
-    if (type === 'address') {
-      setDestination(type, formData.destination.address || '');
-    } else {
-      setDestination(type);
-    }
-  };
-
-  const handleAddressChange = (address: string) => {
-    setDestination('address', address);
-  };
-
   const destinationOptions = [
-    { type: 'address' as DestinationType, label: 'Specific Address', icon: '📍' },
-    { type: 'anywhere' as DestinationType, label: 'Take me anywhere', icon: '🎯' },
-    { type: 'return' as DestinationType, label: 'Return route', icon: '🔄' },
+    { type: 'address', label: 'Specific Address' },
+    { type: 'anywhere', label: 'Anywhere' },
+    { type: 'return', label: 'Round Trip' },
   ];
+
+  const handleDestinationTypeSelect = (type: any) => {
+    setDestination(type, formData.destination.address);
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.title]}>
-        Where would you like to go?
-      </Text>
-      
       <View style={styles.optionsContainer}>
-        {destinationOptions.map((option) => (
-          <Pressable
-            key={option.type}
-            style={[
-              styles.optionButton,
-              formData.destination.type === option.type && styles.selectedOption,
-            ]}
-            onPress={() => handleDestinationTypeSelect(option.type)}
-          >
-            <Text style={styles.optionIcon}>{option.icon}</Text>
-            <Text style={[
-              { fontFamily: 'DMSans_400Regular' },
-              styles.optionText,
-              formData.destination.type === option.type && styles.selectedOptionText,
-            ]}>
-              {option.label}
-            </Text>
-          </Pressable>
-        ))}
+        {destinationOptions.map((option) => {
+          const isSelected = formData.destination.type === option.type;
+          
+          return (
+            <View key={option.type} style={styles.buttonShadow}>
+              <LinearGradient
+                colors={
+                  isSelected
+                    ? ['#A988CD', '#ED97AB']
+                    : ['#F0E8FA', '#FFE9EF']
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.buttonGradient}
+              >
+                <Pressable
+                  style={styles.button}
+                  onPress={() => handleDestinationTypeSelect(option.type)}
+                >
+                  <Text style={[
+                    { fontFamily: 'DMSans-Regular' },
+                    styles.buttonText,
+                    isSelected && styles.selectedButtonText,
+                  ]}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              </LinearGradient>
+            </View>
+          );
+        })}
       </View>
-
-      {formData.destination.type === 'address' && (
-        <View style={styles.addressInputContainer}>
-          <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.inputLabel]}>
-            Enter address
-          </Text>
-          <TextInput
-            style={[{ fontFamily: 'DMSans_400Regular' }, styles.addressInput]}
-            value={formData.destination.address || ''}
-            onChangeText={handleAddressChange}
-            placeholder="Type your destination address..."
-            placeholderTextColor="#A0A0A0"
-          />
-        </View>
-      )}
     </View>
   );
 };
@@ -73,58 +59,59 @@ export const DestinationStep: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 20,
-    color: '#2E3A59',
-    textAlign: 'center',
-    marginBottom: 20,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   optionsContainer: {
-    gap: 16,
+    width: '100%',
+    gap: 20,
   },
-  optionButton: {
+  buttonShadow: {
+    elevation: 2,
+    shadowColor: '#2E3A59',
+    shadowOffset: {
+      width: 0.5,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.5,
+    borderRadius: 15,
+    width: '100%',
+  },
+  buttonGradient: {
+    width: '100%',
+    borderRadius: 15,
+  },
+  button: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    width: '100%',
+    borderRadius: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 15,
-    backgroundColor: '#F8F9FA',
-    borderWidth: 2,
-    borderColor: 'transparent',
+    justifyContent: 'center',
   },
-  selectedOption: {
-    backgroundColor: '#E3D7F7',
-    borderColor: '#764D9D',
-  },
-  optionIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  optionText: {
+  buttonText: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 18,
     color: '#2E3A59',
     flex: 1,
+    textAlign: 'center',
   },
-  selectedOptionText: {
-    color: '#764D9D',
-    fontFamily: 'DMSans_700Bold',
+  selectedButtonText: {
+    color: '#FCFCFC',
   },
   addressInputContainer: {
-    marginTop: 24,
-  },
-  inputLabel: {
-    fontSize: 16,
-    color: '#5A3A7A',
-    marginBottom: 8,
+    marginTop: 30,
   },
   addressInput: {
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
-    color: '#2E3A59',
     backgroundColor: '#FCFCFC',
   },
 });

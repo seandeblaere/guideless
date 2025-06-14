@@ -64,12 +64,12 @@ export default function RegisterFormScreen() {
         <View style={styles.container}>
           <View style={styles.formContainer}>
             <Text style={[
-              { fontFamily: 'PlayfairDisplay_700Bold' },
+              { fontFamily: 'PlayfairDisplay-Bold' },
               styles.title,
               { color: '#2E3A59' }
             ]}>Create Account</Text>
             <Text style={[
-              { fontFamily: 'DMSans_400Regular' },
+              { fontFamily: 'DMSans-Regular' },
               styles.subtitle,
               { color: '#764D9D' }
             ]}>Sign up to get started</Text>
@@ -77,7 +77,7 @@ export default function RegisterFormScreen() {
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={[
-                  { fontFamily: 'DMSans_400Regular' },
+                  { fontFamily: 'DMSans-Regular' },
                   styles.errorText
                 ]}>{error}</Text>
               </View>

@@ -4,23 +4,11 @@ import { useAuthActions, useIsInitialized, useUser } from "@/stores/authStore";
 import { useIsInitialized as useIsRouteInitialized, useHasActiveRoute, useRouteActions, usePois } from "@/stores/RouteStore";
 import { useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import {
-  PlayfairDisplay_400Regular,
-  PlayfairDisplay_700Bold,
-  PlayfairDisplay_900Black,
-  useFonts as usePlayfairFonts
-} from '@expo-google-fonts/playfair-display';
-import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_700Bold,
-  useFonts as useDMSansFonts
-} from '@expo-google-fonts/dm-sans';
 import "@/global.css";
 import "@/services/initializeBackgroundTasks";
 import { cleanupBackgroundTasks } from "@/services/GeofencingService";
 import { NotificationService } from "@/services/NotificationService";
-import { Alert, AppState } from "react-native";
+import { Alert } from "react-native";
 import * as Notifications from 'expo-notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -32,24 +20,10 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const isRouteInitialized = useIsRouteInitialized();
-  const { initializeRouteStore, clearRoute } = useRouteActions();
+  const { initializeRouteStore, clearRoute, startRouteTracking } = useRouteActions();
   const pois = usePois();
   const hasActiveRoute = useHasActiveRoute();
-  const [showRouteAlert, setShowRouteAlert] = useState(false);
-
-  const [playfairLoaded] = usePlayfairFonts({
-    PlayfairDisplay_400Regular,
-    PlayfairDisplay_700Bold,
-    PlayfairDisplay_900Black,
-  });
-
-  const [dmSansLoaded] = useDMSansFonts({
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_700Bold,
-  });
-
-  const fontsLoaded = playfairLoaded && dmSansLoaded;
+  const [launchedFromNotification, setLaunchedFromNotification] = useState(true);
 
   useEffect(() => {
     const unsubscribe = initialize();
@@ -63,8 +37,47 @@ export default function RootLayout() {
   }, [isInitialized]);
 
   useEffect(() => {
-    if (isInitialized && hasActiveRoute && !showRouteAlert) {
-      setShowRouteAlert(true);
+    if(!isInitialized || !isRouteInitialized)  {
+      return;
+    }
+    const checkForNotification = async () => {
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if(!response || !hasActiveRoute) {
+          setLaunchedFromNotification(false);
+          return;
+        }
+          const poiId = response.notification.request.content.data?.poiId;
+          if (poiId && pois.find((poi) => poi.id === poiId)) {
+            startRouteTracking();
+            router.replace({
+              pathname: '/maps',
+              params: { poiId: poiId as string }
+            });
+          }
+        }
+    checkForNotification();
+  }, [isInitialized, isRouteInitialized]);
+
+  useEffect(() => {
+    if(!isInitialized || !isRouteInitialized) {
+      return;
+    }
+
+    const setupBackgroundTasks = async () => {
+      await cleanupBackgroundTasks();
+      const notificationsInitialized = await NotificationService.initialize();
+      if (!notificationsInitialized) {
+        Alert.alert("Failed to initialize notifications service. Please make sure to turn on notifications in the settings.");
+      }
+    };
+
+    setupBackgroundTasks();
+  }, [isInitialized, isRouteInitialized]);
+
+  useEffect(() => {
+    if (!isInitialized || !hasActiveRoute || launchedFromNotification) {
+      return;
+    }
         Alert.alert(
           "Active route detected",
           "You have an active route. Do you want to continue it?",
@@ -72,6 +85,7 @@ export default function RootLayout() {
             {
               text: "Yes",
               onPress: () => {
+                startRouteTracking();
                 router.replace({
                   pathname: '/maps',
                 });
@@ -88,56 +102,16 @@ export default function RootLayout() {
           ],
           { cancelable: false }
         );
-      }  
-  }, [isInitialized, hasActiveRoute, showRouteAlert]);
-
+  }, [isInitialized, launchedFromNotification]);
 
   useEffect(() => {
-    if(!isInitialized || !isRouteInitialized || !fontsLoaded) {
-      return;
-    }
-
-    const setupBackgroundTasks = async () => {
-      await cleanupBackgroundTasks();
-      const notificationsInitialized = await NotificationService.initialize();
-      if (!notificationsInitialized) {
-        Alert.alert("Failed to initialize notifications service. Please make sure to turn on notifications in the settings.");
-      }
-    };
-
-    setupBackgroundTasks();
-  }, [isInitialized, isRouteInitialized, fontsLoaded]);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', async (nextAppState) => {
-      if (nextAppState === 'active') {
-        const response = await Notifications.getLastNotificationResponseAsync();
-        if (response && user && hasActiveRoute) {
-          console.log("Notification response will be handled");
-          const poiId = response.notification.request.content.data?.poiId;
-          if (poiId && pois.find((poi) => poi.id === poiId)) {
-            router.replace({
-              pathname: '/maps',
-              params: { poiId: poiId as string }
-            });
-          }
-        }
-      }
-    });
-  
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isInitialized && fontsLoaded && isRouteInitialized) {
+    if (isInitialized && isRouteInitialized) {
       SplashScreen.hideAsync();
     }
-  }, [isInitialized, fontsLoaded, isRouteInitialized]);
+  }, [isInitialized, isRouteInitialized]);
 
   useEffect(() => {
-    if (!isInitialized || !isRouteInitialized || !fontsLoaded) {
+    if (!isInitialized || !isRouteInitialized) {
       return;
     }
 
@@ -148,13 +122,13 @@ export default function RootLayout() {
     } else if (!user && inProtectedGroup) {
       router.replace("/auth");
     }
-  }, [user, isInitialized, isRouteInitialized, fontsLoaded]);
+  }, [user, isInitialized, isRouteInitialized]);
 
   return (
       <Stack screenOptions={{ headerShown: false,
      }}>
       <Stack.Screen name="(protected)" options={{ headerShown: false, animation: 'none',
-        navigationBarColor: '#764D9D',
+        navigationBarColor: '#FCFCFC',
        }} />
       <Stack.Screen name="auth" options={{ headerShown: false, animation: 'none',
         navigationBarColor: '#E3D7F7'

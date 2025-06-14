@@ -21,7 +21,7 @@ export interface Coordinates {
   longitude: number;
 }
 
-enum ContentType {
+export enum ContentType {
   STORY = "story",
   FOOD_TIP = "food_tip",
   NATURE_INFO = "nature_info",
@@ -36,9 +36,18 @@ export enum RouteType {
   ANYWHERE = "anywhere"
 }
 
-interface POIContent {
+export interface POIContentStructured {
+  [ContentType.STORY]?: string;
+  [ContentType.FOOD_TIP]?: string;
+  [ContentType.NATURE_INFO]?: string;
+  [ContentType.FUN_FACT]?: string;
+  [ContentType.HISTORICAL_CONTEXT]?: string;
+  [ContentType.DESCRIPTION]?: string;
+}
+
+export interface POIContent {
   contentTypes: ContentType[];
-  content: string | null;
+  content: POIContentStructured;
 }
 
 export interface RouteProgress {

@@ -79,7 +79,7 @@ export function TabBar({ state, descriptors, navigation, isKeyboardVisible = fal
               onLongPress={onLongPress}
               isFocused={isFocused}
               routeName={route.name}
-              color={isFocused ? "#FCFCFC" : "#215A73"}
+              color={isFocused ? "#D97995" : "#FCFCFC"}
               label={labelString}
             />
           );
@@ -91,11 +91,11 @@ export function TabBar({ state, descriptors, navigation, isKeyboardVisible = fal
   const styles = StyleSheet.create({
     tabBar: {
         position: 'absolute',
-        bottom: 50,
+        bottom: 35,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#FFF7F9',
+        backgroundColor: '#D97995',
         marginHorizontal: 50,
         paddingVertical: 15,
         borderRadius: 35,
@@ -107,7 +107,7 @@ export function TabBar({ state, descriptors, navigation, isKeyboardVisible = fal
     },
     indicator: {
         position: 'absolute',
-        backgroundColor: '#215A73',
+        backgroundColor: '#FFE9EF',
         borderRadius: 30,
         marginHorizontal: 12,
     },

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type DestinationType = 'address' | 'anywhere' | 'return';
+export type DestinationType = 'address' | 'anywhere' | 'return' | null;
 
 export interface RouteGeneratorFormData {
   destination: {
@@ -28,7 +28,7 @@ interface RouteGeneratorState {
 
 const initialFormData: RouteGeneratorFormData = {
   destination: {
-    type: 'address',
+    type: null,
     address: '',
   },
   durationMinutes: 60,
@@ -50,13 +50,15 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
         };
       }),
 
-    setDuration: (durationMinutes: number) =>
+    setDuration: (durationMinutes: number) => {
+      console.log("setting duration", durationMinutes);
       set((state) => ({
         formData: {
           ...state.formData,
           durationMinutes,
         },
-      })),
+      }));
+    },
 
     toggleCategory: (category: string) =>
       set((state) => {
@@ -80,10 +82,16 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
 
     nextStep: () =>
       set((state) => {
-        if (state.currentStep < 3) {
-          return {
-            currentStep: state.currentStep + 1,
-          };
+        if (state.formData.destination.type === 'address') {
+          if (state.currentStep < 4) {
+            return { currentStep: state.currentStep + 1 };
+          }
+        } else {
+          if (state.currentStep === 1) {
+            return { currentStep: 3 };
+          } else if (state.currentStep === 3) {
+            return { currentStep: 4 };
+          }
         }
         return {};
       }),
@@ -91,9 +99,10 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
     previousStep: () =>
       set((state) => {
         if (state.currentStep > 1) {
-          return {
-            currentStep: state.currentStep - 1,
-          };
+          if (state.currentStep === 3 && state.formData.destination.type !== 'address') {
+            return { currentStep: 1 };
+          }
+          return { currentStep: state.currentStep - 1 };
         }
         return {};
       }),
@@ -107,23 +116,24 @@ export const useRouteGeneratorActions = () => useRouteGeneratorStore((state) => 
 export const useCanProceedToNextStep = (): boolean => {
   const formData = useFormData();
   const currentStep = useCurrentStep();
+  
   switch (currentStep) {
     case 1:
+      return formData.destination.type !== null;
+    
+    case 2:
       if (formData.destination.type !== 'address') {
         return true;
       }
-      if(formData.destination.address && formData.destination.address.trim().length > 0) {
-        return true;
-      }
-      return false;
-    
-    case 2:
-      return formData.durationMinutes >= 30;
+      return Boolean(formData.destination.address?.trim().length);
     
     case 3:
+      return formData.durationMinutes >= 30;
+    
+    case 4:
       return formData.categories.length > 0;
     
     default:
       return false;
   }
-}
+};

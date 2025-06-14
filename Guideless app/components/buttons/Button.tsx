@@ -38,7 +38,7 @@ export function Button({
         <ActivityIndicator color={textColor} />
       ) : (
         <Text style={[
-          { fontFamily: 'DMSans_400Regular' },
+          { fontFamily: 'DMSans-Regular' },
           styles.buttonText,
           { color: textColor },
           isDisabled && styles.disabledButtonText,

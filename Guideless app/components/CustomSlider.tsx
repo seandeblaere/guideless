@@ -10,7 +10,7 @@ interface CustomSliderProps {
   style?: any;
 }
 
-const SLIDER_WIDTH = 280;
+export const SLIDER_WIDTH = 280;
 const HANDLE_SIZE = 24;
 const TRACK_HEIGHT = 6;
 
@@ -31,6 +31,7 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
     currentValue: value,
     currentPosition: 0,
     isDragging: false,
+    initialized: false,
   }).current;
 
   const getPositionFromValue = (val: number) => {
@@ -64,7 +65,6 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
         pan.setValue({ x: clampedPosition, y: 0 });
         
         const rawValue = getValueFromPosition(clampedPosition);
-        // Round the value to steps of 15, but keep slider smooth
         const steppedValue = Math.round(rawValue / step) * step;
         const finalValue = Math.max(minimumValue, Math.min(maximumValue, steppedValue));
         
@@ -82,13 +82,15 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
   ).current;
 
   React.useEffect(() => {
-    if (!animState.isDragging && value !== animState.currentValue) {
-      const position = getPositionFromValue(value);
-      animState.offSet = position;
+    if (!animState.initialized) {
+      const initialPosition = getPositionFromValue(value);
+      animState.offSet = initialPosition;
+      animState.currentPosition = initialPosition;
       animState.currentValue = value;
-      pan.setValue({ x: position, y: 0 });
+      pan.setValue({ x: initialPosition, y: 0 });
+      animState.initialized = true;
     }
-  }, [value]);
+  }, []);
 
   return (
     <View style={[styles.container, style]}>
@@ -124,24 +126,27 @@ const styles = StyleSheet.create({
   container: {
     height: 40,
     justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    width: SLIDER_WIDTH,
   },
   track: {
     width: SLIDER_WIDTH,
     height: TRACK_HEIGHT,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#F9C6D3',
     borderRadius: TRACK_HEIGHT / 2,
     position: 'relative',
   },
   fill: {
     height: TRACK_HEIGHT,
-    backgroundColor: '#764D9D',
+    backgroundColor: '#E3D7F7',
     borderRadius: TRACK_HEIGHT / 2,
     position: 'absolute',
   },
   handle: {
     width: HANDLE_SIZE,
     height: HANDLE_SIZE,
-    backgroundColor: '#764D9D',
+    backgroundColor: '#2F7EA1',
     borderRadius: HANDLE_SIZE / 2,
     position: 'absolute',
     top: (TRACK_HEIGHT - HANDLE_SIZE) / 2,

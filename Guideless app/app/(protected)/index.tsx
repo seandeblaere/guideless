@@ -1,13 +1,14 @@
 import { View, Text, StyleSheet, StatusBar, Pressable, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import React, { useRef, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCurrentStep, useRouteGeneratorActions, useCanProceedToNextStep, useFormData } from '../../stores/RouteGeneratorStore';
 import { DestinationStep } from '../../components/DestinationStep';
 import { DurationStep } from '../../components/DurationStep';
 import { CategoriesStep } from '../../components/CategorieStep';
-import { useRouteActions, useHasActiveRoute, useRouteStore } from '@/stores/RouteStore';
+import { useRouteActions, useHasActiveRoute } from '@/stores/RouteStore';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { router } from 'expo-router';
+import { AddressStep } from '../../components/AddressStep';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -22,16 +23,31 @@ export default function HomeScreen() {
   const [isGeneratingRoute, setIsGeneratingRoute] = useState(false);
   const hasActiveRoute = useHasActiveRoute();
 
+  const getSlidePosition = () => {
+    const { destination } = formData;
+    
+    if (destination.type === 'address') {
+      return currentStep - 1;
+    } else {
+      switch (currentStep) {
+        case 1: return 0;
+        case 3: return 1;
+        case 4: return 2;
+        default: return 0;
+      }
+    }
+  };
+
   useEffect(() => {
     Animated.timing(slideAnim, {
-      toValue: -(currentStep - 1) * width,
+      toValue: -getSlidePosition() * width,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [currentStep]);
+  }, [currentStep, formData.destination.type]);
 
   const handleNext = () => {
-    if (canProceedToNextStep && currentStep < 3) {
+    if (canProceedToNextStep && currentStep < 4) {
       nextStep();
     }
   };
@@ -91,45 +107,92 @@ export default function HomeScreen() {
     } 
   };
 
-  const renderStepIndicator = () => (
-    <View style={styles.stepIndicator}>
-      {[1, 2, 3].map((step) => (
-        <View
-          key={step}
-          style={[
-            styles.stepDot,
-            currentStep >= step && styles.activeStepDot,
-          ]}
-        />
-      ))}
-    </View>
-  );
-
   const getStepTitle = () => {
+    const { destination } = formData;
+    
     switch (currentStep) {
-      case 1:
-        return 'Destination';
-      case 2:
-        return 'Duration';
-      case 3:
-        return 'Categories';
+      case 1: return 'Destination';
+      case 2: return destination.type === 'address' ? 'Address' : 'Duration';
+      case 3: return destination.type === 'address' ? 'Duration' : 'Categories';
+      case 4: return 'Categories';
+      default: return '';
+    }
+  };
+
+  const renderStepIndicator = () => {
+    const { destination } = formData;
+    
+    if (destination.type === 'address') {
+      return (
+        <View style={styles.stepIndicator}>
+          {[1, 2, 3, 4].map((step) => (
+            <View
+              key={step}
+              style={[
+                styles.stepDot,
+                currentStep >= step && styles.activeStepDot,
+              ]}
+            />
+          ))}
+        </View>
+      );
+    } else {
+      const stepMapping = [1, 3, 4];
+      return (
+        <View style={styles.stepIndicator}>
+          {stepMapping.map((step, index) => (
+            <View
+              key={index}
+              style={[
+                styles.stepDot,
+                currentStep >= step && styles.activeStepDot,
+              ]}
+            />
+          ))}
+        </View>
+      );
+    }
+  };
+
+  const renderStepTitle = () => {
+    const title = getStepTitle();
+    return (
+      <View style={styles.titleContainer}>
+        <Text style={styles.stepTitle}>
+          {title}
+        </Text>
+        <Text style={styles.stepDescription}>
+          {getStepDescription()}
+        </Text>
+      </View>
+    );
+  };
+
+  const getStepDescription = () => {
+    const { destination } = formData;
+    
+    switch (currentStep) {
+      case 1: return "Choose how you want to explore";
+      case 2: return "Tell us where you want to go";
+      case 3: return destination.type === 'address' ? "How much time do you have?" : "Select your interests";
+      case 4: return "Select your interests";
+      default: return '';
     }
   };
 
   return (
     <>
       <StatusBar translucent backgroundColor="#FCFCFC" />
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-        <View style={[styles.container]}>
-          <View style={styles.header}>
-            <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.mainTitle]}>
-              Create your journey
-            </Text>
-            <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.stepTitle]}>
-              Step {currentStep} of 3: {getStepTitle()}
-            </Text>
-            {renderStepIndicator()}
-          </View>
+      <View style={[styles.container]}>
+        <View style={styles.header}>
+          <Text style={[{ fontFamily: 'DMSans-Bold' }, styles.mainTitle]}>
+            Create your journey
+          </Text>
+          {renderStepIndicator()}
+        </View>
+
+        <View style={styles.contentContainer}>
+          {renderStepTitle()}
 
           <View style={styles.formContainer}>
             <Animated.View
@@ -143,6 +206,11 @@ export default function HomeScreen() {
               <View style={[styles.stepContainer, { width }]}>
                 <DestinationStep />
               </View>
+              {formData.destination.type === 'address' && (
+                <View style={[styles.stepContainer, { width }]}>
+                  <AddressStep />
+                </View>
+              )}
               <View style={[styles.stepContainer, { width }]}>
                 <DurationStep />
               </View>
@@ -151,52 +219,29 @@ export default function HomeScreen() {
               </View>
             </Animated.View>
           </View>
-
-          <View style={styles.navigationContainer}>
-            {currentStep > 1 && (
-              <Pressable style={styles.backButton} onPress={handleBack}>
-                <Text style={[{ fontFamily: 'DMSans_400Regular' }, styles.backButtonText]}>
-                  ← Back
-                </Text>
-              </Pressable>
-            )}
-            
-            <View style={styles.spacer} />
-            
-            {currentStep < 3 ? (
-              <Pressable
-                style={[
-                  styles.nextButton,
-                  !canProceedToNextStep && styles.disabledButton,
-                ]}
-                onPress={handleNext}
-                disabled={!canProceedToNextStep}
-              >
-                <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.nextButtonText]}>
-                  Continue
-                </Text>
-              </Pressable>
-            ) : (
-              <Pressable
-                style={[
-                  styles.generateButton,
-                  !canProceedToNextStep && styles.disabledButton,
-                ]}
-                onPress={handleGenerateRoute}
-                disabled={!canProceedToNextStep}
-              >
-                {isGeneratingRoute ? (
-                  <ActivityIndicator size="small" color="#FCFCFC" />
-                ) : (
-                  <Text style={[{ fontFamily: 'DMSans_700Bold' }, styles.generateButtonText]}>
-                    Generate Route
-                  </Text>
-                )}
-              </Pressable>
-            )}
-          </View>
         </View>
-      </SafeAreaView>
+
+        <View style={styles.navigationContainer}>
+          <Pressable disabled={currentStep === 1} style={[styles.circleButton, currentStep === 1 && styles.disabledCircleButton]} onPress={handleBack}>
+            <MaterialIcons name="arrow-back" size={28} color={currentStep === 1 ? "#A0A3AD" : "#2F7EA1"} />
+          </Pressable>
+        
+          <Pressable
+            style={[
+              styles.circleButton,
+              !canProceedToNextStep && styles.disabledCircleButton,
+            ]}
+            onPress={handleNext}
+            disabled={!canProceedToNextStep}
+          >
+            <MaterialIcons 
+              name="arrow-forward" 
+              size={28} 
+              color={!canProceedToNextStep ? "#A0A3AD" : "#2F7EA1"} 
+            />
+          </Pressable>
+        </View>
+      </View>
     </>
   );
 }
@@ -208,25 +253,21 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingTop: 40,
+    paddingBottom: 0,
     alignItems: 'center',
   },
   mainTitle: {
-    fontSize: 24,
+    fontSize: 18,
     color: '#2E3A59',
-    marginBottom: 8,
+    marginBottom: 20,
     textAlign: 'center',
     paddingHorizontal: 10,
     minWidth: 250,
   },
-  stepTitle: {
-    fontSize: 12,
-    color: '#5A3A7A',
-    marginBottom: 16,
-  },
   stepIndicator: {
-    marginTop: 10,
+    marginTop: 5,
+    marginBottom: 20,
     flexDirection: 'row',
     gap: 8,
   },
@@ -234,69 +275,73 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#F0E8FA',
   },
   activeStepDot: {
-    backgroundColor: '#764D9D',
+    backgroundColor: '#A988CD',
   },
-  formContainer: {
+  contentContainer: {
     flex: 1,
-    overflow: 'hidden',
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 100,
   },
   slidingContainer: {
     flexDirection: 'row',
     height: '100%',
   },
   stepContainer: {
-    paddingVertical: 20,
-  },
-  navigationContainer: {
-    flexDirection: 'row',
     paddingHorizontal: 20,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  spacer: {
-    flex: 1,
+  formContainer: {
+    height: 350,
+    overflow: 'hidden',
   },
-  backButton: {
-    paddingVertical: 12,
+  navigationContainer: {
+    position: 'absolute',
+    bottom: 150,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 60,
+  },
+  circleButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FCFCFC',
+    borderWidth: 2,
+    borderColor: '#2F7EA1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  disabledCircleButton: {
+    backgroundColor: '#FCFCFC',
+    borderColor: '#A0A3AD',
+  },
+  stepTitle: {
+    fontFamily: 'PlayfairDisplay-Bold',
+    fontSize: 40,
+    color: '#2E3A59',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 0,
     paddingHorizontal: 20,
   },
-  backButtonText: {
+  stepDescription: {
+    fontFamily: 'DMSans-Regular',
     fontSize: 16,
-    color: '#764D9D',
-  },
-  nextButton: {
-    backgroundColor: '#2E3A59',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-  },
-  nextButtonText: {
-    color: '#FCFCFC',
-    fontSize: 16,
-  },
-  generateButton: {
-    backgroundColor: '#764D9D',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-  },
-  generateButtonText: {
-    color: '#FCFCFC',
-    fontSize: 16,
-  },
-  disabledButton: {
-    backgroundColor: '#A0A0A0',
-  },
-  resetButton: {
-    alignSelf: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  resetButtonText: {
-    fontSize: 14,
-    color: '#A0A0A0',
+    color: '#5A6176',
+    textAlign: 'center',
   },
 });

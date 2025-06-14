@@ -21,12 +21,12 @@ export default function AuthScreen() {
       >
         <View style={styles.titleContainer}>
         <Text style={[
-          { fontFamily: 'PlayfairDisplay_700Bold' },
+          { fontFamily: 'PlayfairDisplay-Bold' },
           styles.title,
           { color: '#2E3A59' },
         ]}>Guideless</Text>
         <Text style={[
-          { fontFamily: 'DMSans_400Regular' },
+          { fontFamily: 'DMSans-Regular' },
           styles.subtitle,
         ]}>Let your journey match your vibe</Text>
         </View>

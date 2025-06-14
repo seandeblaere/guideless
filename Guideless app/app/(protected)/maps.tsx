@@ -1,12 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, StatusBar, ActivityIndicator, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import { decode } from '@googlemaps/polyline-codec';
-import { usePois, useRoute } from '@/stores/RouteStore';
+import { usePois, useRoute, POI } from '@/stores/RouteStore';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useRouteActions, useIsTracking, useIsLoadingTracking, useIsGeneratingRoute, useIsClearingRoute } from '@/stores/RouteStore';
+import { POIContentModal } from '@/components/POIContentModal';
 
 export default function MapScreen() {
   const route = useRoute();
@@ -18,6 +19,10 @@ export default function MapScreen() {
   const isTracking = useIsTracking();
   const isRouteTrackingLoading = useIsLoadingTracking();
   const isClearingRoute = useIsClearingRoute();
+  
+  const [selectedPOI, setSelectedPOI] = useState<POI | null>(null);
+  const [showPOIContent, setShowPOIContent] = useState(false);
+  const { poiId } = useLocalSearchParams();
 
   const decodedPolyline = route?.polyline ? decode(route.polyline, 5) : null;
 
@@ -25,6 +30,16 @@ export default function MapScreen() {
     console.log("MapScreen mounted");
     getCurrentLocation();
   }, []);
+
+  useEffect(() => {
+    if (poiId && pois) {
+      const poi = pois.find(p => p.id === poiId);
+      if (poi?.visited && poi.content) {
+        setSelectedPOI(poi);
+        setShowPOIContent(true);
+      }
+    }
+  }, [poiId, pois]);
 
   const handleFinishRoute = async () => {
     if(!route) {
@@ -69,6 +84,18 @@ export default function MapScreen() {
         longitudeDelta: 0.005,
       }, 1000);
   };
+
+  const centerOnPOI = async (poi: POI) => {
+    if (!mapRef.current) return;
+    if(!poi.locationRegion) return;
+    const region = {
+      latitude: poi.locationRegion.latitude,
+      longitude: poi.locationRegion.longitude,
+      latitudeDelta: 0.005,
+      longitudeDelta: 0.005,
+    };
+    mapRef.current.animateToRegion(region, 1000);
+  }
 
   if (isGeneratingRoute || isLoadingLocation || !location || isClearingRoute) {
     return (
@@ -124,12 +151,9 @@ export default function MapScreen() {
               pinColor={poi.visited ? "#8B68B1" : "#E3D7F7"}
               onPress={() => {
                 if(poi.visited && poi.content) {
-                  router.push({
-                    pathname: '/profile',
-                    params: {
-                      poiId: poi.id,
-                    },
-                  });
+                  centerOnPOI(poi);
+                  setSelectedPOI(poi);
+                  setShowPOIContent(true);
                 }
               }}
             />
@@ -173,6 +197,15 @@ export default function MapScreen() {
             <MaterialIcons name="check" size={28} color="#764D9D" />
           )}
         </TouchableOpacity>
+
+        <POIContentModal 
+          poi={selectedPOI}
+          visible={showPOIContent}
+          onClose={() => {
+            setShowPOIContent(false);
+            setSelectedPOI(null);
+          }}
+        />
       </SafeAreaView>
     </>
   );

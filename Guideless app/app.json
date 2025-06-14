@@ -47,7 +47,30 @@
           }
         }
       ],
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/DMSans-Regular.ttf",
+            "./assets/fonts/DMSans-Medium.ttf",
+            "./assets/fonts/DMSans-Bold.ttf",
+            "./assets/fonts/DMSans-Italic.ttf",
+            "./assets/fonts/DMSans-MediumItalic.ttf",
+            "./assets/fonts/DMSans-BoldItalic.ttf",
+            "./assets/fonts/DMSans-Light.ttf",
+            "./assets/fonts/DMSans-LightItalic.ttf",
+            "./assets/fonts/DMSans-Thin.ttf",
+            "./assets/fonts/DMSans-ThinItalic.ttf",
+            "./assets/fonts/PlayfairDisplay-Regular.ttf",
+            "./assets/fonts/PlayfairDisplay-Bold.ttf",
+            "./assets/fonts/PlayfairDisplay-Black.ttf",
+            "./assets/fonts/PlayfairDisplay-ExtraBold.ttf",
+            "./assets/fonts/PlayfairDisplay-Italic.ttf",
+            "./assets/fonts/PlayfairDisplay-Medium.ttf",
+            "./assets/fonts/PlayfairDisplay-MediumItalic.ttf"
+          ]
+        }
+      ],
       "expo-web-browser",
       "expo-background-task",
       [

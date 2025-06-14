@@ -71,12 +71,12 @@ export default function LoginFormScreen() {
         <View style={styles.container}>
           <View style={styles.formContainer}>
             <Text style={[
-              { fontFamily: 'PlayfairDisplay_700Bold' },
+              { fontFamily: 'PlayfairDisplay-Bold' },
               styles.title,
               { color: '#2E3A59' }
             ]}>Welcome Back</Text>
             <Text style={[
-              { fontFamily: 'DMSans_400Regular' },
+              { fontFamily: 'DMSans-Regular' },
               styles.subtitle,
               { color: '#764D9D' }
             ]}>Sign in to your account</Text>
@@ -84,7 +84,7 @@ export default function LoginFormScreen() {
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={[
-                  { fontFamily: 'DMSans_400Regular' },
+                  { fontFamily: 'DMSans-Regular' },
                   styles.errorText
                 ]}>{error}</Text>
               </View>

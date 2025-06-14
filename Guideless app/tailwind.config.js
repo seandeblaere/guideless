@@ -7,12 +7,12 @@ module.exports = {
       colors: {
       },
       fontFamily: {
-        'playfair': ['PlayfairDisplay_400Regular'],
-        'playfair-bold': ['PlayfairDisplay_700Bold'],
-        'playfair-black': ['PlayfairDisplay_900Black'],
-        'dm-sans': ['DMSans_400Regular'],
-        'dm-sans-medium': ['DMSans_500Medium'],
-        'dm-sans-bold': ['DMSans_700Bold'],
+        'playfair': ['PlayfairDisplay-Regular'],
+        'playfair-bold': ['PlayfairDisplay-Bold'],
+        'playfair-black': ['PlayfairDisplay-Black'],
+        'dm-sans': ['DMSans-Regular'],
+        'dm-sans-medium': ['DMSans-Medium'],
+        'dm-sans-bold': ['DMSans-Bold'],
       },
     },
   },

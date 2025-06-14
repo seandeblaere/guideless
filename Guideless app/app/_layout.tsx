@@ -75,7 +75,7 @@ export default function RootLayout() {
   }, [isInitialized, isRouteInitialized]);
 
   useEffect(() => {
-    if (!isInitialized || !hasActiveRoute || launchedFromNotification) {
+    if (!isInitialized || !isRouteInitialized || !hasActiveRoute || launchedFromNotification) {
       return;
     }
         Alert.alert(
@@ -102,7 +102,7 @@ export default function RootLayout() {
           ],
           { cancelable: false }
         );
-  }, [isInitialized, launchedFromNotification]);
+  }, [isInitialized, isRouteInitialized, launchedFromNotification]);
 
   useEffect(() => {
     if (isInitialized && isRouteInitialized) {

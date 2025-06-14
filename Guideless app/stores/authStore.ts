@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import { SignInFormData, SignUpFormData } from '@/validation/validationSchemas';
 import { getAuthErrorMessage } from '@/helpers/getAuthErrorMessage';
+import { useRouteStore } from './RouteStore';
 
 interface AuthActions {
   setUser: (user: User | null) => void;
@@ -151,6 +152,9 @@ const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: () => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      if(!user) {
+        useRouteStore.getState().actions.onAuthStateChanged();
+      }
       set({ 
         user, 
         isInitialized: true,

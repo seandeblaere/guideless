@@ -1,26 +1,27 @@
 import { View, Text, StyleSheet, StatusBar, Pressable, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useCurrentStep, useRouteGeneratorActions, useCanProceedToNextStep, useFormData } from '../../stores/RouteGeneratorStore';
 import { DestinationStep } from '../../components/DestinationStep';
 import { DurationStep } from '../../components/DurationStep';
 import { CategoriesStep } from '../../components/CategorieStep';
-import { useRouteActions, useHasActiveRoute } from '@/stores/RouteStore';
+import { useRouteActions, useHasActiveRoute, useIsGeneratingRoute } from '@/stores/RouteStore';
 import { useCurrentLocation } from '@/hooks/useCurrentLocation';
 import { router } from 'expo-router';
 import { AddressStep } from '../../components/AddressStep';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const currentStep = useCurrentStep();
   const { nextStep, previousStep, resetForm } = useRouteGeneratorActions();
-  const { generateRoute, clearRoute } = useRouteActions();
+  const { generateRoute, clearRoute, setIsGeneratingRoute } = useRouteActions();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const canProceedToNextStep = useCanProceedToNextStep();
   const formData = useFormData();
   const { getCurrentLocation } = useCurrentLocation();
-  const [isGeneratingRoute, setIsGeneratingRoute] = useState(false);
+  const isGeneratingRoute = useIsGeneratingRoute();
   const hasActiveRoute = useHasActiveRoute();
 
   const getSlidePosition = () => {
@@ -33,6 +34,7 @@ export default function HomeScreen() {
         case 1: return 0;
         case 3: return 1;
         case 4: return 2;
+        case 5: return 2;
         default: return 0;
       }
     }
@@ -47,8 +49,13 @@ export default function HomeScreen() {
   }, [currentStep, formData.destination.type]);
 
   const handleNext = () => {
-    if (canProceedToNextStep && currentStep < 4) {
-      nextStep();
+    if (canProceedToNextStep) {
+      if (currentStep < 4 || (formData.destination.type !== 'address' && currentStep < 4)) {
+        nextStep();
+      } else {
+        // Show final confirmation step
+        nextStep();
+      }
     }
   };
 
@@ -59,47 +66,48 @@ export default function HomeScreen() {
   };
 
   const canProceed = async (): Promise<boolean> => {
-    let canProceed = true;
     if(!hasActiveRoute) {
-      return canProceed;
+      return true;
     }
-    Alert.alert(
-      "Active route detected",
-      "You still have an active route. Do you want to generate a new one?",
-      [
-        {
-          text: "Yes",
-          onPress: () => canProceed = false,
-        },
-        {
-          text: "No",
-          onPress: () => canProceed = false,
-          style: 'cancel'
-        }
-      ],
-      { cancelable: false }
-    );  
-    return canProceed;
+    
+    // Use a Promise to properly wait for the user's response
+    return new Promise((resolve) => {
+      Alert.alert(
+        "Active route detected",
+        "You still have an active route. Do you want to generate a new one?",
+        [
+          {
+            text: "Yes",
+            onPress: () => resolve(true),
+          },
+          {
+            text: "No",
+            onPress: () => resolve(false),
+            style: 'cancel'
+          }
+        ],
+        { cancelable: false }
+      );
+    });
   };
 
   const handleGenerateRoute = async () => {
     setIsGeneratingRoute(true);
     try {
+      const canProceedToGenerate = await canProceed();
+      if(!canProceedToGenerate) {
+        return;
+      }
       const location = await getCurrentLocation();
       
       if (!location) {
         Alert.alert('Location Required', 'Location is needed to generate a route.');
         return;
       }
-
-      const canProceedToGenerate = await canProceed();
-      if(!canProceedToGenerate) {
-        return;
-      }
       hasActiveRoute && clearRoute();
       await generateRoute(formData, location);
-      resetForm();
       router.push('/maps');
+      resetForm();
     } catch (error) {
       Alert.alert('Error', 'Failed to generate route: ' + error);
     } finally {
@@ -114,7 +122,8 @@ export default function HomeScreen() {
       case 1: return 'Destination';
       case 2: return destination.type === 'address' ? 'Address' : 'Duration';
       case 3: return destination.type === 'address' ? 'Duration' : 'Categories';
-      case 4: return 'Categories';
+      case 4: return destination.type === 'address' ? 'Categories' : 'Categories';
+      case 5: return 'Ready';
       default: return '';
     }
   };
@@ -125,7 +134,7 @@ export default function HomeScreen() {
     if (destination.type === 'address') {
       return (
         <View style={styles.stepIndicator}>
-          {[1, 2, 3, 4].map((step) => (
+          {[1, 2, 3, 4, 5].map((step) => (
             <View
               key={step}
               style={[
@@ -137,7 +146,7 @@ export default function HomeScreen() {
         </View>
       );
     } else {
-      const stepMapping = [1, 3, 4];
+      const stepMapping = [1, 3, 4, 5];
       return (
         <View style={styles.stepIndicator}>
           {stepMapping.map((step, index) => (
@@ -176,9 +185,37 @@ export default function HomeScreen() {
       case 2: return "Tell us where you want to go";
       case 3: return destination.type === 'address' ? "How much time do you have?" : "Select your interests";
       case 4: return "Select your interests";
+      case 5: return "Generate your journey";
       default: return '';
     }
   };
+
+  const GenerateRouteStep = () => {
+    return (
+      <View style={styles.generateStepContainer}>
+        <Pressable onPress={handleGenerateRoute} disabled={isGeneratingRoute}>
+          <LinearGradient
+            colors={['#A988CD', '#ED97AB']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.generateButton}
+          >
+            {isGeneratingRoute ? (
+              <ActivityIndicator size="large" color="#FFFFFF" />
+            ) : (
+              <MaterialIcons name="explore" size={64} color="#FFFFFF" />
+            )}
+          </LinearGradient>
+        </Pressable>
+        <Text style={styles.generateText}>
+          {isGeneratingRoute ? "Creating your journey..." : "Tap to start exploring!"}
+        </Text>
+      </View>
+    );
+  };
+
+  const isFinalStep = (currentStep === 5) || 
+                    (formData.destination.type !== 'address' && currentStep === 5);
 
   return (
     <>
@@ -195,49 +232,57 @@ export default function HomeScreen() {
           {renderStepTitle()}
 
           <View style={styles.formContainer}>
-            <Animated.View
-              style={[
-                styles.slidingContainer,
-                {
-                  transform: [{ translateX: slideAnim }],
-                },
-              ]}
-            >
-              <View style={[styles.stepContainer, { width }]}>
-                <DestinationStep />
-              </View>
-              {formData.destination.type === 'address' && (
+            {isFinalStep ? (
+              <GenerateRouteStep />
+            ) : (
+              <Animated.View
+                style={[
+                  styles.slidingContainer,
+                  {
+                    transform: [{ translateX: slideAnim }],
+                  },
+                ]}
+              >
                 <View style={[styles.stepContainer, { width }]}>
-                  <AddressStep />
+                  <DestinationStep />
                 </View>
-              )}
-              <View style={[styles.stepContainer, { width }]}>
-                <DurationStep />
-              </View>
-              <View style={[styles.stepContainer, { width }]}>
-                <CategoriesStep />
-              </View>
-            </Animated.View>
+                {formData.destination.type === 'address' && (
+                  <View style={[styles.stepContainer, { width }]}>
+                    <AddressStep />
+                  </View>
+                )}
+                <View style={[styles.stepContainer, { width }]}>
+                  <DurationStep />
+                </View>
+                <View style={[styles.stepContainer, { width }]}>
+                  <CategoriesStep />
+                </View>
+              </Animated.View>
+            )}
           </View>
         </View>
 
         <View style={styles.navigationContainer}>
-          <Pressable disabled={currentStep === 1} style={[styles.circleButton, currentStep === 1 && styles.disabledCircleButton]} onPress={handleBack}>
+          <Pressable 
+            disabled={currentStep === 1} 
+            style={[styles.circleButton, currentStep === 1 && styles.disabledCircleButton]} 
+            onPress={handleBack}
+          >
             <MaterialIcons name="arrow-back" size={28} color={currentStep === 1 ? "#A0A3AD" : "#2F7EA1"} />
           </Pressable>
         
           <Pressable
             style={[
               styles.circleButton,
-              !canProceedToNextStep && styles.disabledCircleButton,
+              (!canProceedToNextStep || isFinalStep) && styles.disabledCircleButton,
             ]}
             onPress={handleNext}
-            disabled={!canProceedToNextStep}
+            disabled={!canProceedToNextStep || isFinalStep}
           >
             <MaterialIcons 
               name="arrow-forward" 
               size={28} 
-              color={!canProceedToNextStep ? "#A0A3AD" : "#2F7EA1"} 
+              color={(!canProceedToNextStep || isFinalStep) ? "#A0A3AD" : "#2F7EA1"} 
             />
           </Pressable>
         </View>
@@ -343,5 +388,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#5A6176',
     textAlign: 'center',
+  },
+  generateStepContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 50,
+  },
+  generateButton: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#2E3A59',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    marginBottom: 24,
+  },
+  generateText: {
+    fontFamily: 'DMSans-Medium',
+    fontSize: 18,
+    color: '#2E3A59',
+    textAlign: 'center',
+    marginTop: 16,
   },
 });

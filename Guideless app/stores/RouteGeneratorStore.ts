@@ -41,7 +41,6 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
   actions: {
     setDestination: (type: DestinationType, address?: string) =>
       set((state) => {
-        console.log(type, address);
         return {
           formData: {
             ...state.formData,
@@ -83,14 +82,19 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
     nextStep: () =>
       set((state) => {
         if (state.formData.destination.type === 'address') {
-          if (state.currentStep < 4) {
+          if (state.currentStep < 5) {
             return { currentStep: state.currentStep + 1 };
           }
         } else {
-          if (state.currentStep === 1) {
-            return { currentStep: 3 };
-          } else if (state.currentStep === 3) {
-            return { currentStep: 4 };
+          switch (state.currentStep) {
+            case 1:
+              return { currentStep: 3 };
+            case 3:
+              return { currentStep: 4 };
+            case 4:
+              return { currentStep: 5 };
+            default:
+              return {};
           }
         }
         return {};
@@ -101,6 +105,8 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
         if (state.currentStep > 1) {
           if (state.currentStep === 3 && state.formData.destination.type !== 'address') {
             return { currentStep: 1 };
+          } else if (state.currentStep === 5) {
+            return { currentStep: 4 };
           }
           return { currentStep: state.currentStep - 1 };
         }
@@ -132,6 +138,9 @@ export const useCanProceedToNextStep = (): boolean => {
     
     case 4:
       return formData.categories.length > 0;
+    
+    case 5:
+      return true;
     
     default:
       return false;

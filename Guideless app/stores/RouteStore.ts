@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { startGeofencingForRoute, cleanupBackgroundTasks } from '@/services/GeofencingService';
 import * as Location from 'expo-location';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/firebaseConfig';
+import { functions, auth } from '@/firebaseConfig';
 import { getRouteStateFromRoute, getPOIStateFromPOIData, getRouteRequestFromFormData } from '@/helpers/convertRouteData';
 import { RouteGeneratorFormData } from '@/stores/RouteGeneratorStore';
 import { NotificationService } from '@/services/NotificationService';
@@ -13,8 +13,15 @@ const generateRoute = httpsCallable(functions, 'generateRoute');
 const visitPOI = httpsCallable(functions, 'visitPOI');
 const finishRoute = httpsCallable(functions, 'finishRoute');
 
-const ROUTE_KEY = 'guideless_route';
-const ROUTE_POIS_KEY = 'guideless_route_pois';
+const getRouteKey = () => {
+  const userId = auth.currentUser?.uid;
+  return userId ? `guideless_route_${userId}` : null;
+};
+
+const getRoutePoIsKey = () => {
+  const userId = auth.currentUser?.uid;
+  return userId ? `guideless_route_pois_${userId}` : null;
+};
 
 export interface Coordinates {
   latitude: number;
@@ -105,6 +112,7 @@ interface RouteState {
   isClearingRoute: boolean;
   isLoadingTracking: boolean;
   actions: {
+    setIsGeneratingRoute: (isGeneratingRoute: boolean) => void;
     setRoute: (route: Route) => void;
     setPois: (pois: POI[]) => void;
     setIsGeofencingActive: (isGeofencingActive: boolean) => void;
@@ -115,6 +123,7 @@ interface RouteState {
     visitPOI: (regionIdentifier: string) => Promise<{poi: POI, routeProgress: RouteProgress} | null>;
     setIsInitialized: (isInitialized: boolean) => void; 
     clearRoute: () => Promise<void>;
+    onAuthStateChanged: () => Promise<void>;
   };
 }
 
@@ -131,6 +140,9 @@ export const useRouteStore = create<RouteState>((set, get) => ({
   isClearingRoute: false,
   isLoadingTracking: false,
   actions: {
+    setIsGeneratingRoute: (isGeneratingRoute: boolean) => {
+      set({ isGeneratingRoute });
+    },
     setHasActiveRoute: (hasActiveRoute: boolean) => {
       set({ hasActiveRoute });
     },
@@ -183,8 +195,12 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       const newRouteState = getRouteStateFromRoute(route, routeProgress);
       const newPois = pois.map((p) => p.id === regionIdentifier ? poiState : p);
       console.log("New POIs: ", newPois);
-      await AsyncStorage.setItem(ROUTE_POIS_KEY, JSON.stringify(newPois));
-      await AsyncStorage.setItem(ROUTE_KEY, JSON.stringify(newRouteState));
+      const routeKey = getRouteKey();
+      const poisKey = getRoutePoIsKey();
+      if (routeKey && poisKey) {
+        await AsyncStorage.setItem(poisKey, JSON.stringify(newPois));
+        await AsyncStorage.setItem(routeKey, JSON.stringify(newRouteState));
+      }
       set({ pois: newPois, route: newRouteState, roundTripTriggerFlag: true });
       set({ isVisitingPOI: false });
       return {poi: poiState, routeProgress: poiData.routeProgress as RouteProgress};
@@ -217,8 +233,12 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       const pois = routeData.pois.map((poi: any) => getPOIStateFromPOIData(poi));
       set({ route: routeState, pois: pois, hasActiveRoute: true });
       await clearStorage();
-      await AsyncStorage.setItem(ROUTE_KEY, JSON.stringify(routeState));
-      await AsyncStorage.setItem(ROUTE_POIS_KEY, JSON.stringify(pois));
+      const routeKey = getRouteKey();
+      const poisKey = getRoutePoIsKey();
+      if (routeKey && poisKey) {
+        await AsyncStorage.setItem(routeKey, JSON.stringify(routeState));
+        await AsyncStorage.setItem(poisKey, JSON.stringify(pois));
+      }
       set({ isGeneratingRoute: false });
       } catch (error) {
         console.log("Failed to generate route: ", error);
@@ -275,16 +295,22 @@ export const useRouteStore = create<RouteState>((set, get) => ({
 
     console.log("Initializing route store");
     console.log("Checking for stored route");
-    const storedRoute = await AsyncStorage.getItem(ROUTE_KEY);
-    const storedPois = await AsyncStorage.getItem(ROUTE_POIS_KEY);
+    
+    const routeKey = getRouteKey();
+    const poisKey = getRoutePoIsKey();
+    
+    if (routeKey && poisKey) {
+      const storedRoute = await AsyncStorage.getItem(routeKey);
+      const storedPois = await AsyncStorage.getItem(poisKey);
 
-    if(storedRoute && storedPois) {
-      console.log("Found stored route and pois");
-      console.log("Setting stored route and pois");
-      const pois = JSON.parse(storedPois) as POI[];
-      const roundTripTriggerFlag = pois.filter((poi) => poi.visited === true).length > 0;
-      set({ route: JSON.parse(storedRoute) as Route, pois: pois, hasActiveRoute: true, isInitialized: true, roundTripTriggerFlag: roundTripTriggerFlag });
-      return;
+      if(storedRoute && storedPois) {
+        console.log("Found stored route and pois");
+        console.log("Setting stored route and pois");
+        const pois = JSON.parse(storedPois) as POI[];
+        const roundTripTriggerFlag = pois.filter((poi) => poi.visited === true).length > 0;
+        set({ route: JSON.parse(storedRoute) as Route, pois: pois, hasActiveRoute: true, isInitialized: true, roundTripTriggerFlag: roundTripTriggerFlag });
+        return;
+      }
     }
 
     console.log("No stored route and pois found");
@@ -319,8 +345,14 @@ export const useRouteStore = create<RouteState>((set, get) => ({
     console.log("Route retrieved from server");
     console.log("Setting route and pois in async storage");
 
-    await AsyncStorage.setItem(ROUTE_KEY, JSON.stringify(routeState));
-    await AsyncStorage.setItem(ROUTE_POIS_KEY, JSON.stringify(pois));
+    await clearStorage();
+    const routeKey = getRouteKey();
+    const poisKey = getRoutePoIsKey();
+    
+    if (routeKey && poisKey) {
+      await AsyncStorage.setItem(routeKey, JSON.stringify(routeState));
+      await AsyncStorage.setItem(poisKey, JSON.stringify(pois));
+    }
     console.log("Route and pois set in store");
     console.log("Setting route and pois in state store");
     set({ route: routeState, pois: pois, hasActiveRoute: true, isInitialized: true, roundTripTriggerFlag: roundTripTriggerFlag });
@@ -330,6 +362,10 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       set({ isInitialized: true });
       return;
      }
+  },
+  onAuthStateChanged: async () => {
+    await cleanupBackgroundTasks();
+    set({ route: null, pois: [], hasActiveRoute: false, isTracking: false, isGeofencingActive: false});
   },
   clearRoute: async () => {
     console.log("Clearing route");
@@ -354,8 +390,13 @@ export const useRouteStore = create<RouteState>((set, get) => ({
 
 const clearStorage = async (): Promise<void> => {
   console.log("Clearing storage");
-  await AsyncStorage.removeItem(ROUTE_KEY);
-  await AsyncStorage.removeItem(ROUTE_POIS_KEY);
+  const routeKey = getRouteKey();
+  const poisKey = getRoutePoIsKey();
+  
+  if (routeKey && poisKey) {
+    await AsyncStorage.removeItem(routeKey);
+    await AsyncStorage.removeItem(poisKey);
+  }
   await NotificationService.resetNotifications();
 }
 

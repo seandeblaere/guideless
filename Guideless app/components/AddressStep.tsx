@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { StyleSheet, TextInput, View, Keyboard, Text } from 'react-native';
+import { StyleSheet, TextInput, View, Keyboard, Platform, TouchableWithoutFeedback } from 'react-native';
 import { useFormData, useRouteGeneratorActions } from '../stores/RouteGeneratorStore';
 
 export const AddressStep: React.FC = () => {
@@ -29,20 +29,25 @@ export const AddressStep: React.FC = () => {
     isFocusedRef.current = false;
   };
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Destination address</Text>
-      <TextInput
-        ref={inputRef}
-        style={styles.addressInput}
-        placeholder="Enter address or location..."
-        value={formData.destination.address || ''}
-        onChangeText={(text) => setDestination('address', text)}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        autoComplete='street-address'
-      />
-    </View>
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <View style={styles.container}>
+        <TextInput
+          ref={inputRef}
+          style={styles.addressInput}
+          placeholder="Enter address or location..."
+          value={formData.destination.address || ''}
+          onChangeText={(text) => setDestination('address', text)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          autoComplete='street-address'
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -52,13 +57,6 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  label: {
-    fontFamily: 'DMSans-Light',
-    fontSize: 16,
-    color: '#2F7EA1',
-    marginBottom: 10,
-    alignSelf: 'flex-start',
   },
   addressInput: {
     fontFamily: 'DMSans-Regular',

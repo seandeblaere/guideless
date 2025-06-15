@@ -25,12 +25,8 @@ export class PlacesService {
   public async searchNearbyPlaces(params: NearbyPlacesParams): Promise<IPlace[]> {
     const requestData = this.getRequestData(params);
 
-    console.log("Request data for nearby places: ", requestData);
-
     try {
       const [response] = await this.placesClient.searchNearby(requestData, API_CALL_OPTIONS.NEARBY_PLACES);
-
-      console.log("Response for nearby places: ", response);
 
       if (!response.places) {
         return [];
@@ -52,7 +48,6 @@ export class PlacesService {
         } : undefined,
       }));
     } catch (error) {
-      console.log("Error for nearby places: ", error);
       return [];
     }
 

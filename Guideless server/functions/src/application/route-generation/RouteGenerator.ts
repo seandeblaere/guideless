@@ -34,8 +34,6 @@ export class RouteGenerator {
   async generateRoute(userId: string, request: ClientRequest): Promise<{ route: IRouteDocument, pois: POIDocument[] }> {
     const themeTypes = await getThemeTypes(request.themeCategories);
 
-    console.log("Theme types: ", themeTypes);
-
     const endLocation = await this.placesService.getGeocode(request.endLocation);
 
     const places = await this.placesService.searchNearbyPlaces({

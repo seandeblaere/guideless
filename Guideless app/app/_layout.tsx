@@ -31,10 +31,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && user) {
       initializeRouteStore();
     }
-  }, [isInitialized]);
+  }, [isInitialized, user]);
 
   useEffect(() => {
     if(!isInitialized || !isRouteInitialized)  {

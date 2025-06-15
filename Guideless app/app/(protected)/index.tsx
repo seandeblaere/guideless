@@ -34,7 +34,7 @@ export default function HomeScreen() {
         case 1: return 0;
         case 3: return 1;
         case 4: return 2;
-        case 5: return 2;
+        case 5: return 3;
         default: return 0;
       }
     }
@@ -53,7 +53,6 @@ export default function HomeScreen() {
       if (currentStep < 4 || (formData.destination.type !== 'address' && currentStep < 4)) {
         nextStep();
       } else {
-        // Show final confirmation step
         nextStep();
       }
     }
@@ -70,7 +69,6 @@ export default function HomeScreen() {
       return true;
     }
     
-    // Use a Promise to properly wait for the user's response
     return new Promise((resolve) => {
       Alert.alert(
         "Active route detected",
@@ -121,8 +119,8 @@ export default function HomeScreen() {
     switch (currentStep) {
       case 1: return 'Destination';
       case 2: return destination.type === 'address' ? 'Address' : 'Duration';
-      case 3: return destination.type === 'address' ? 'Duration' : 'Categories';
-      case 4: return destination.type === 'address' ? 'Categories' : 'Categories';
+      case 3: return 'Duration';
+      case 4: return 'Categories';
       case 5: return 'Ready';
       default: return '';
     }
@@ -232,33 +230,32 @@ export default function HomeScreen() {
           {renderStepTitle()}
 
           <View style={styles.formContainer}>
-            {isFinalStep ? (
-              <GenerateRouteStep />
-            ) : (
-              <Animated.View
-                style={[
-                  styles.slidingContainer,
-                  {
-                    transform: [{ translateX: slideAnim }],
-                  },
-                ]}
-              >
+            <Animated.View
+              style={[
+                styles.slidingContainer,
+                {
+                  transform: [{ translateX: slideAnim }],
+                },
+              ]}
+            >
+              <View style={[styles.stepContainer, { width }]}>
+                <DestinationStep />
+              </View>
+              {formData.destination.type === 'address' && (
                 <View style={[styles.stepContainer, { width }]}>
-                  <DestinationStep />
+                  <AddressStep />
                 </View>
-                {formData.destination.type === 'address' && (
-                  <View style={[styles.stepContainer, { width }]}>
-                    <AddressStep />
-                  </View>
-                )}
-                <View style={[styles.stepContainer, { width }]}>
-                  <DurationStep />
-                </View>
-                <View style={[styles.stepContainer, { width }]}>
-                  <CategoriesStep />
-                </View>
-              </Animated.View>
-            )}
+              )}
+              <View style={[styles.stepContainer, { width }]}>
+                <DurationStep />
+              </View>
+              <View style={[styles.stepContainer, { width }]}>
+                <CategoriesStep />
+              </View>
+              <View style={[styles.stepContainer, { width }]}>
+                <GenerateRouteStep />
+              </View>
+            </Animated.View>
           </View>
         </View>
 

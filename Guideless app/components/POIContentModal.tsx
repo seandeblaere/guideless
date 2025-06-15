@@ -7,7 +7,6 @@ import {
   ScrollView,
   SafeAreaView,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { POI, ContentType } from '@/stores/RouteStore';

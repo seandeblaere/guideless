@@ -26,7 +26,7 @@ export const getTypeScoring = async (): Promise<Map<string, string[]>> => {
 
       typeScoring.set(typeCategory, allTypes);
     } catch (error) {
-      console.error(`Error fetching theme ${typeCategory}:`, error);
+      throw new Error(`Error fetching theme ${typeCategory}: ${error}`);
     }
   }
 

@@ -119,13 +119,6 @@ export class ApiRequestBuilder {
         
         const radius = Math.max((startToEndDistance / 2) + dynamicBuffer, MIN_RADIUS);
         
-        console.log(`Dynamic search radius calculation:
-            - Direct distance: ${(startToEndDistance/1000).toFixed(2)}km
-            - Direct travel time: ${directTravelTime.toFixed(2)} minutes
-            - Available for detours: ${timeForDetours.toFixed(2)} minutes
-            - Dynamic buffer: ${(dynamicBuffer/1000).toFixed(2)}km
-            - Final radius: ${(radius/1000).toFixed(2)}km`);
-        
         return {
             circle: {
                 center: midpoint,
@@ -139,8 +132,6 @@ export class ApiRequestBuilder {
             (this.durationMinutes/60) * this.averageWalkingSpeed * 1000 * durationFactor,
             MIN_RADIUS
         );
-        
-        console.log(`Round trip search radius: ${(radius/1000).toFixed(2)}km (${durationFactor.toFixed(2)} factor applied)`);
         
         return {
             circle: {

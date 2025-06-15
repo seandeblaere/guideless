@@ -26,7 +26,7 @@ export const getThemeTypes = async (themes: ThemeCategory[]): Promise<string[]> 
 
       allTypes.forEach((type) => themeTypes.add(type));
     } catch (error) {
-      console.error(`Error fetching theme ${theme}:`, error);
+      throw new Error(`Error fetching theme ${theme}: ${error}`);
     }
   }
 

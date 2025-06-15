@@ -50,7 +50,6 @@ const useRouteGeneratorStore = create<RouteGeneratorState>((set, get) => ({
       }),
 
     setDuration: (durationMinutes: number) => {
-      console.log("setting duration", durationMinutes);
       set((state) => ({
         formData: {
           ...state.formData,

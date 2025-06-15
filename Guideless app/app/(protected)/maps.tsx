@@ -188,6 +188,20 @@ export default function MapScreen() {
               </View>
             </Marker>
           ))}
+          {/*isTracking && route?.endLocation && (
+            <Marker
+              key="end-location"
+              anchor={{ x: 0.5, y: 0.5 }}
+              title="Your destination"
+              coordinate={{
+                latitude: route.endLocation.coordinates.latitude,
+                longitude: route.endLocation.coordinates.longitude,
+              }}>
+                <View style={styles.markerContainer}>
+                  <Image source={require('@/assets/icons/destination.png')} style={styles.markerImage} />
+                </View>
+              </Marker>
+          )}*/}
         </MapView>
         
         <View style={styles.mapButtonsContainer}>

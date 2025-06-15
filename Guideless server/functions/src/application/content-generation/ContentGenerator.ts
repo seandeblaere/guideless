@@ -30,7 +30,6 @@ export class ContentGenerator {
   }
 
   async generateRouteContent(): Promise<void> {
-    console.log("Generating route content from ContentGenerator...");
     if (!this.genAI) {
       await this.initializeGenAI();
     }
@@ -46,14 +45,10 @@ export class ContentGenerator {
         .collection("pois")
         .get();
 
-      console.log("POIs snapshot: ", poisSnapshot);
-
       const pois = poisSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       } as POIDocument));
-
-      console.log("Amount of POIs found for route: ", pois.length);
 
       const contentPromises = pois.map((poi) =>
         this.generatePOIContent(poi)
@@ -63,14 +58,12 @@ export class ContentGenerator {
 
       await this.updateRouteContentStatus(ContentGenerationStatus.COMPLETED);
     } catch (error) {
-      console.error("Error generating route content:", error);
       await this.updateRouteContentStatus(ContentGenerationStatus.FAILED);
     }
   }
 
   private async generatePOIContent(poi: POIDocument): Promise<void> {
     try {
-      console.log("Generating content for POI: ", poi.id);
       if (poi.contentReady || poi.content) {
         return;
       }
@@ -102,7 +95,6 @@ export class ContentGenerator {
   }
 
   private async callGeminiAPI(poi: POIDocument, contentTypes: ContentType[]): Promise<POIContentStructured> {
-    console.log("Calling Gemini API for POI: ", poi.id);
     const prompt = this.buildPrompt(poi, contentTypes);
     
     const uniqueContentTypes = [...new Set(contentTypes)];
@@ -123,8 +115,6 @@ export class ContentGenerator {
       responseSchema.propertyOrdering.push(type);
     });
 
-    console.log("Response schema: ", responseSchema);
-
     try {
       const response = await this.genAI.models.generateContent({
         model: apiConfig.googleGemini.model,
@@ -138,19 +128,14 @@ export class ContentGenerator {
 
       let responseText = response.text.trim();
       
-      console.log("Raw response text:", responseText);
-      
       if (responseText.startsWith('```json')) {
         responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       } else if (responseText.startsWith('```')) {
         responseText = responseText.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
       
-      console.log("Cleaned response text:", responseText);
-      
       return JSON.parse(responseText);
     } catch (error) {
-      console.error("Error calling Gemini API:", error);
       throw error;
     }
   }
@@ -250,7 +235,6 @@ Return the content as a JSON object with keys matching the content types: ${cont
           updatedAt: Timestamp.now(),
         });
     } catch (error) {
-      console.error("Error updating route content status:", error);
       throw error;
     }
   }

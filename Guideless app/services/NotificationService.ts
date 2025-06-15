@@ -20,25 +20,20 @@ export class NotificationService {
 
   static async initialize(): Promise<boolean> {
     this.cleanup();
-    console.log("Initializing notification service...");
     try {
       if (Device.isDevice) {
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
-        console.log("Existing status: ", existingStatus);
         if (existingStatus !== 'granted') {
           const { status } = await Notifications.requestPermissionsAsync();
           finalStatus = status;
         }
-        console.log("Final status: ", finalStatus);
         if (finalStatus !== 'granted') {
           return false;
         }
-        console.log("Notifications permissions granted");
       } else {
         return false;
       }
-      console.log("Setting notification channel");
       await Notifications.setNotificationChannelAsync('poi-alerts', {
         name: 'Points of Interest',
         description: 'Notifications when you are near a point of interest',
@@ -47,24 +42,18 @@ export class NotificationService {
         lightColor: '#764D9D',
         enableVibrate: true,
       });
-      console.log("Setting notification response received listener");
 
       const lastResponse = await Notifications.getLastNotificationResponseAsync();
       if (lastResponse) {
-        console.log("App launched from notification:", lastResponse);
         this.handleNotificationResponse(lastResponse);
       }
 
       this.notificationSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-        console.log("Notification response received while app running:", response);
         this.handleNotificationResponse(response);
       });
 
-      console.log("Notification channel set");
-      console.log("Notification service initialized");
       return true;
     } catch (error) {
-      console.error("Failed to initialize notifications:", error);
       return false;
     }
   }
@@ -79,14 +68,11 @@ export class NotificationService {
   }
   
   static async sendPoiNotification(poi: POI): Promise<boolean> {
-    console.log("Sending POI notification: ", poi.id);
     try {
       const hasBeenNotified = await this.hasBeenNotifiedForPoi(poi.id);
-      console.log("Has been notified: ", hasBeenNotified);
       if (hasBeenNotified) {
         return false;
       }
-      console.log("Notifying POI...");
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `Discovered: ${poi.name}`,
@@ -97,24 +83,19 @@ export class NotificationService {
         },
         trigger: null,
       });
-      console.log("POI notification sent");
       await this.addNotifiedPoi(poi.id);
       return true;
     } catch (error) {
-      console.log("Error sending POI notification: ", error);
       return false;
     }
   }
 
   static async sendEndLocationNotification(): Promise<boolean> {
-    console.log("Sending end location notification: ");
     try {
       const hasBeenNotified = await this.hasBeenNotifiedForPoi('end_location');
-      console.log("Has been notified: ", hasBeenNotified);
       if (hasBeenNotified) {
         return false;
       }
-      console.log("Notifying end location...");
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `Destination reached`,
@@ -128,20 +109,16 @@ export class NotificationService {
       await this.addNotifiedPoi('end_location');
       return true;
     } catch (error) {
-      console.log("Error sending end location notification: ", error);
       return false;
     }
   }
 
   static async sendRouteCompletedNotification(isPOI: boolean): Promise<boolean> {
-    console.log("Sending route completed notification: ");
     try {
       const hasBeenNotified = await this.hasBeenNotifiedForPoi('route_completed');
-      console.log("Has been notified: ", hasBeenNotified);
       if (hasBeenNotified) {
         return false;
       }
-      console.log("Notifying route completed...");
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `Journey completed`,
@@ -158,15 +135,12 @@ export class NotificationService {
       await this.addNotifiedPoi('route_completed');
       return true;
     } catch (error) {
-      console.log("Error sending route completed notification: ", error);
       return false;
     }
   }
 
   static async sendNoContentNotification(): Promise<boolean> {
-    console.log("Sending no content notification: ");
     try {
-      console.log("Notifying no content...");
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `Region entered`,
@@ -179,16 +153,13 @@ export class NotificationService {
       });
       return true;
     } catch (error) {
-      console.log("Error sending no content notification: ", error);
       return false;
     }
   }
 
   static async getNotifiedPois(): Promise<string[]> {
-    console.log("Getting notified POIs");
     try {
       const notifiedPoisJson = await AsyncStorage.getItem(NOTIFIED_POIS_KEY);
-      console.log("Notified POIs: ", notifiedPoisJson);
       return notifiedPoisJson ? JSON.parse(notifiedPoisJson) : [];
     } catch (error) {
       return [];

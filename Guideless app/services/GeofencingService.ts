@@ -14,7 +14,6 @@ TaskManager.defineTask(GEOFENCING_TASK_NAME, async ({ data: { eventType, region 
     return;
   }
   if(eventType === GeofencingEventType.Exit) {
-    console.log("Exited region: ", region);
     return;
   }
   if (eventType === GeofencingEventType.Enter) {
@@ -23,21 +22,17 @@ TaskManager.defineTask(GEOFENCING_TASK_NAME, async ({ data: { eventType, region 
       return;
     }
     lastTriggerTime = now;
-    console.log("Entered region: ", region);
     await handleEnter(region);
   }
 });
 
 export async function handleEnter(region: LocationRegion): Promise<void> {
-    console.log("Entered:", region.identifier);
     const route = useRouteStore.getState().route;
     const roundTripTriggerFlag = useRouteStore.getState().roundTripTriggerFlag;
     if(!route) {
-      console.log("No route found");
       return;
     }
     if(!region.identifier) {
-      console.log("No region identifier found");
       return;
     }
     if(region.identifier === 'end_location' && route.routeType === RouteType.DESTINATION) {
@@ -65,19 +60,16 @@ export async function handleEnter(region: LocationRegion): Promise<void> {
     }
     const result = await useRouteStore.getState().actions.visitPOI(region.identifier);
     if(!result) {
-      console.log("No result from visitPOI");
       await NotificationService.sendNoContentNotification();
       return;
     }
     const {poi, routeProgress} = result;
     if(!poi) {
-      console.log("No POI found");
       await NotificationService.sendNoContentNotification();
       return;
     }
     await NotificationService.sendPoiNotification(poi);
     if(routeProgress && routeProgress.routeCompleted && route.routeType === RouteType.ANYWHERE) {
-      console.log("Route completed");
       await NotificationService.sendRouteCompletedNotification(true);
       await cleanupBackgroundTasks();
       await useRouteStore.getState().actions.clearRoute();
@@ -85,45 +77,32 @@ export async function handleEnter(region: LocationRegion): Promise<void> {
 }
 
 export async function cleanupBackgroundTasks(): Promise<void> {
-  console.log("Cleaning up background tasks...");
   const geofencingStatus = await getGeofencingStatus();
-  console.log("Geofencing status: ", geofencingStatus);
   try {
   if (geofencingStatus.isActive) {
-    console.log("geofencing was active, stopping it...");
     await Location.stopGeofencingAsync(GEOFENCING_TASK_NAME);
-    console.log("Geofencing stopped");
   }
 
   if (geofencingStatus.isLocationActive) {
-    console.log("location updates were active, stopping them...");
     await Location.stopLocationUpdatesAsync(GEOFENCING_TASK_NAME);
-    console.log("Location updates stopped");
   }
-  console.log("Background tasks cleaned up");
   } catch (error) {
-    console.log("Error cleaning up background tasks: ", error);
   }
 }
 
-export async function startGeofencingForRoute(pois: POI[], endLocation: Coordinates | null): Promise<boolean> {
-  console.log("Starting geofencing for route...");
+export async function startGeofencingForRoute(pois: POI[], endLocation: Coordinates | null): Promise<boolean> { 
   try {
     await cleanupBackgroundTasks();
 
     const foregroundResult = await Location.requestForegroundPermissionsAsync();
     if (!foregroundResult.granted) {
-      console.log("Foreground permissions not granted");
       return false;
     }
 
     const backgroundResult = await Location.requestBackgroundPermissionsAsync();
     if (!backgroundResult.granted) {
-      console.log("Background permissions not granted");
       return false;
     }
-
-    console.log("Foreground and background permissions granted");
 
     const regions: LocationRegion[] = pois.map((poi) => poi.locationRegion);
     if(endLocation) {
@@ -135,8 +114,6 @@ export async function startGeofencingForRoute(pois: POI[], endLocation: Coordina
       });
     }
 
-    console.log("Starting geofencing with regions: ", regions);
-    console.log("Regions length: ", regions.length, " pois length: ", pois.length);
     await Location.startGeofencingAsync(GEOFENCING_TASK_NAME, regions);
     return await Location.hasStartedGeofencingAsync(GEOFENCING_TASK_NAME);
   } catch (error) {

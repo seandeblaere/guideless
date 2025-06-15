@@ -206,15 +206,20 @@ export const useRouteStore = create<RouteState>((set, get) => ({
         const result = await generateRoute(routeRequest);
       if (!result) {
         set({ isGeneratingRoute: false });
+        console.log("No result from generateRoute");
         return;
       }
+      console.log("Result from generateRoute: ", result);
       const routeData = result.data as any;
+      console.log("Route data from generateRoute: ", routeData);
       if (!routeData) {
         set({ isGeneratingRoute: false });
+        console.log("No route data from generateRoute");
         return;
       }
       if (routeData.success === false || !routeData.route || !routeData.pois) {
         set({ isGeneratingRoute: false });
+        console.log("Route data is not valid");
         return;
       }
       const routeState = getRouteStateFromRoute(routeData.route as Route);
@@ -230,6 +235,7 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       set({ isGeneratingRoute: false });
       } catch (error) {
         set({ isGeneratingRoute: false });
+        console.log("Failed to generate route");
         return;
       }
     },
@@ -243,21 +249,25 @@ export const useRouteStore = create<RouteState>((set, get) => ({
 
       if(!route) {
         set({ isLoadingTracking: false });
+        console.log("No route to start tracking");
         return;
       }
 
       if (!pois || pois.length === 0) {
         set({ isLoadingTracking: false });
+        console.log("No pois to start tracking");
         return;
       }
 
       if(isTracking && isGeofencingActive) {
         set({ isLoadingTracking: false });
+        console.log("Already tracking");
         return;
       }
       const success = await startGeofencingForRoute(pois, route?.endLocation?.coordinates ?? null);
       if (!success) {
         set({ isLoadingTracking: false });
+        console.log("Failed to start geofencing");
         return;
       }
       set({ 

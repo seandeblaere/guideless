@@ -5,12 +5,14 @@ import {POIDocument} from "../../domain/interfaces/IPOIDocument";
 import {ClientRequest} from "../../infrastructure/api/dto/ClientRequestData";
 import {protos} from "@googlemaps/routing";
 import {RouteType} from "../../shared/enums/RouteType";
+import { Coordinates } from "../../shared/types/Coordinates";
 
 export class RouteConverter {
   static convertToRouteDocument(
     route: Route,
     request: ClientRequest,
-    computedRoute: protos.google.maps.routing.v2.IComputeRoutesResponse
+    computedRoute: protos.google.maps.routing.v2.IComputeRoutesResponse,
+    endLocation?: Coordinates
   ): IRouteDocument {
     return {
       routeType: route.type,
@@ -21,8 +23,8 @@ export class RouteConverter {
       startLocation: {
         coordinates: request.startLocation,
       },
-      endLocation: request.endLocation ? {
-        coordinates: request.endLocation,
+      endLocation: endLocation ? {
+        coordinates: endLocation,
       } : null,
 
       polyline: computedRoute.routes![0].polyline!.encodedPolyline,

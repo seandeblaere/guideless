@@ -106,6 +106,10 @@ export async function startGeofencingForRoute(pois: POI[], endLocation: Coordina
 
     const regions: LocationRegion[] = pois.map((poi) => poi.locationRegion);
     if(endLocation) {
+      console.log("Adding end location to geofencing regions");
+      console.log("End location: ", endLocation);
+      console.log("latitude: ", endLocation.latitude);
+      console.log("longitude: ", endLocation.longitude);
       regions.push({
         identifier: 'end_location',
         latitude: endLocation.latitude,
@@ -117,6 +121,7 @@ export async function startGeofencingForRoute(pois: POI[], endLocation: Coordina
     await Location.startGeofencingAsync(GEOFENCING_TASK_NAME, regions);
     return await Location.hasStartedGeofencingAsync(GEOFENCING_TASK_NAME);
   } catch (error) {
+    console.log("Failed to start geofencing: ", error);
     return false;
   }
 }

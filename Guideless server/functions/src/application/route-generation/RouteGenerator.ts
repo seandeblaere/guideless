@@ -53,7 +53,7 @@ export class RouteGenerator {
       throw new Error("Start location not found in distance matrix");
     }
 
-    if (request.endLocation && !distanceMatrix.has("end_location")) {
+    if (endLocation && !distanceMatrix.has("end_location")) {
       throw new Error("End location not found in distance matrix");
     }
 
@@ -77,7 +77,7 @@ export class RouteGenerator {
 
     const computedRoute = await this.routesService.computeRoute(optimizedRouteState.route);
 
-    const routeDocument = RouteConverter.convertToRouteDocument(optimizedRouteState.route, request, computedRoute);
+    const routeDocument = RouteConverter.convertToRouteDocument(optimizedRouteState.route, request, computedRoute, endLocation);
 
     const poiDocuments = RouteConverter.convertToPOIDocuments(optimizedRouteState.route.pois);
 

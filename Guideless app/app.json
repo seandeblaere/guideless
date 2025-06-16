@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "config": {
-        "googleMapsApiKey": "AIzaSyDlvivtpRnt-3_Kpi8HTZfRLgSmmqDsDtI"
+        "googleMapsApiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}"
       }
     },
     "android": {
@@ -23,7 +23,7 @@
       "package": "com.seandeblaere.Guideless",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDlvivtpRnt-3_Kpi8HTZfRLgSmmqDsDtI"
+          "apiKey": "${EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}"
         }
       }
     },
